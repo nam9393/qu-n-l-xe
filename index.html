@@ -484,8 +484,14 @@ function setup(){
   if(m)connect();
 }
 async function connect(){
+  if(/Zalo|FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger|TikTok|; wv\)/i.test(navigator.userAgent||'')){
+    setSync('Bạn đang mở trong trình duyệt của ứng dụng khác (Zalo, Facebook…). Google không cho đăng nhập ở đây. Hãy mở link bằng Chrome hoặc Safari.');return;
+  }
   try{await getToken();connected=true;await syncNow()}
-  catch(e){setSync('Bấm “Kết nối Google Drive” để đăng nhập')}
+  catch(e){
+    const t=String(e&&e.message||e||'');
+    setSync(t.indexOf('popup_failed')===0?'Trình duyệt chặn cửa sổ đăng nhập. Hãy cho phép pop-up cho trang này rồi bấm lại.':t==='popup_closed'?'Bạn đã đóng cửa sổ đăng nhập. Bấm “Kết nối Google Drive” để thử lại.':'Chưa kết nối được. Bấm “Kết nối Google Drive” để thử lại.');
+  }
 }
 $('#gsign').onclick=connect;
 $('#cidsave').onclick=()=>{const v=$('#cid').value.trim();if(!/\.apps\.googleusercontent\.com$/.test(v)){say('Client ID phải kết thúc bằng .apps.googleusercontent.com');return}try{localStorage.setItem('soxe_cid',v)}catch(e){}location.reload()};
