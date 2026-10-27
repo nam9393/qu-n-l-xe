@@ -80,6 +80,8 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
       <label class="full">Tên xe<input id="vn" required placeholder="Ví dụ: Honda Vision, Vios 2020"></label>
       <label>Biển số<input id="vp" placeholder="51F-123.45"></label>
       <label>Số km hiện tại<input id="vo" type="number" min="0" placeholder="0"></label>
+      <label>Dung tích bình xăng (lít)<input id="vt" type="number" step="0.1" min="0" placeholder="Ví dụ 5.5"></label>
+      <label>Tiêu hao công bố (L/100km)<input id="vc" type="number" step="0.01" min="0" placeholder="Ví dụ 1.9"></label>
       <div class="full row"><button class="pri" type="submit">Lưu xe</button><button type="button" id="vcancel">Hủy</button></div>
     </form>
   </div>
@@ -89,6 +91,7 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
   <div class="card" id="entry">
     <h2 id="eh">Thêm khoản mới</h2>
     <div class="tabs" id="tabs"></div>
+    <div id="gauge"></div>
     <form id="ef"></form>
   </div>
 
@@ -220,15 +223,67 @@ function renderDash(){
   const hf=['all'].concat(Object.keys(TYPES));
   $('#hf').innerHTML=hf.map(k=>`<button type="button" data-hf="${k}" aria-pressed="${k===hist}">${k==='all'?'Tất cả':TYPES[k][0]}</button>`).join('');
   const items=s.per_.filter(e=>hist==='all'||e.type===hist).sort((a,b)=>b.date.localeCompare(a.date)||b.odo-a.odo);
+  const LV=levels(S.cur);
   const head=hist==='all'||!items.length?'':`<p class="empty" style="margin:0 0 4px">${items.length} khoản · Tổng ${money(sm(items,e=>e.amount))}</p>`;
   $('#list').innerHTML=items.length?head+items.map(e=>{
     const T=TYPES[e.type],isIn=e.type==='income';
-    const sub=[e.date.split('-').reverse().join('/'),e.odo?e.odo.toLocaleString('vi-VN')+' km':'',e.type==='fuel'&&e.liters?num(e.liters)+' L'+(e.price?' · '+money(e.price)+'/L':'')+(e.full?' · đầy bình':''):''].filter(Boolean).join(' · ');
+    const sub=[e.date.split('-').reverse().join('/'),e.odo?e.odo.toLocaleString('vi-VN')+' km':'',e.type==='fuel'&&e.liters?num(e.liters)+' L'+(e.price?' · '+money(e.price)+'/L':'')+(e.full?' · đầy bình':'')+(LV.tank&&LV.m&&LV.m[e.id]&&LV.m[e.id].after!==null?' · sau đổ ~'+Math.round(LV.m[e.id].after/LV.tank*100)+'%':''):''].filter(Boolean).join(' · ');
     return `<div class="item"><span class="tag" style="background:var(${T[1]})"></span>
       <div class="t"><b>${esc(e.note||T[0])}</b><small>${T[0]} · ${sub}</small></div>
       <span class="amt ${isIn?'in':'out'}">${isIn?'+':'−'}${money(e.amount)}</span>
       <button class="lnk" data-edit="${e.id}" aria-label="Sửa khoản này">Sửa</button>
       <button class="lnk" data-del="${e.id}" aria-label="Xóa khoản này">Xóa</button></div>`}).join(''):'<div class="empty">Chưa có khoản nào trong khoảng thời gian và loại này.</div>';
+  renderGauge();
+}
+
+function measured(fl){
+  const fulls=fl.filter(e=>e.full);let km=0,lit=0,n=0;
+  for(let i=1;i<fulls.length;i++){
+    const a=fulls[i-1],b=fulls[i],d=b.odo-a.odo;
+    if(d<=0)continue;
+    km+=d;n++;lit+=sm(fl.filter(e=>e.odo>a.odo&&e.odo<=b.odo),e=>e.liters||0);
+  }
+  return {c:km&&lit?lit/km*100:0,n};
+}
+function levels(vid,extra,skipId){
+  const v=S.vehicles.find(x=>x.id===vid),tank=v?+v.tank||0:0;
+  if(!tank)return {tank:0};
+  const fl=S.entries.filter(e=>e.v===vid&&e.type==='fuel'&&e.odo&&e.id!==skipId);
+  if(extra)fl.push(extra);
+  fl.sort((a,b)=>a.odo-b.odo||a.date.localeCompare(b.date));
+  const ms=measured(fl),off=+v.cons||0;
+  const r=ms.n>=2||!off?ms.c:off;
+  const m={};let lv=null,po=0;
+  fl.forEach(e=>{
+    if(lv!==null)lv=r?Math.max(0,lv-(e.odo-po)*r/100):null;
+    if(e.full)lv=tank;else if(lv!==null)lv=Math.min(tank,lv+(e.liters||0));
+    m[e.id]={after:lv};po=e.odo;
+  });
+  return {tank,m,lv,r,po};
+}
+function gbar(l,tank,label){
+  const p=Math.max(0,Math.min(100,l/tank*100));
+  const c=p<=15?'--out':p<=30?'--fuel':'--in';
+  return `<div style="margin:0 0 8px"><div style="display:flex;justify-content:space-between;font-size:13px;gap:8px"><span>${label}</span><b>~${Math.round(p)}% (${num(l)}/${num(tank)} L)</b></div><div class="bar" style="height:14px;margin:4px 0 0"><span style="width:${p}%;background:var(${c})"></span></div></div>`;
+}
+function renderGauge(){
+  const el=$('#gauge'),v=cur();
+  if(!el)return;
+  if(tab!=='fuel'||!v){el.innerHTML='';return}
+  if(!(+v.tank)){el.innerHTML='<p class="empty" style="margin:0 0 8px">Nhập dung tích bình xăng ở “Sửa xe này” để xem % xăng còn lại.</p>';return}
+  const L=levels(v.id);
+  const g=id=>($('#'+id)||{}).value||'';
+  const curOdo=Math.max(v.odo||0,...S.entries.filter(e=>e.v===v.id&&e.odo).map(e=>e.odo));
+  let h='';
+  const now=L.lv==null?null:(curOdo===L.po?L.lv:L.r?Math.max(0,L.lv-(curOdo-L.po)*L.r/100):null);
+  h+=now==null?'<p class="empty" style="margin:0 0 8px">Chưa đủ dữ liệu để ước tính xăng còn lại. Hãy ghi một lần đổ đầy bình (kèm số km).</p>':gbar(now,L.tank,'Xăng còn lại hiện tại (ước tính)');
+  const odo=+g('f_odo')||0,lit=+g('f_l')||0,full=!!($('#f_full')||{}).checked;
+  if(odo>0&&(lit>0||full)){
+    const x=levels(v.id,{id:'cand',v:v.id,type:'fuel',date:g('f_date')||today(),odo,liters:lit,full},editId);
+    const a=x.m&&x.m.cand?x.m.cand.after:null;
+    h+=a==null?'':gbar(a,x.tank,'Sau khi đổ lần này');
+  }
+  el.innerHTML=h;
 }
 
 function report(){
@@ -262,13 +317,16 @@ function report(){
       :r>=1.05?`Đang hao hơn: ${num(rc)} L/100km gần đây, cao hơn mức trung bình ${num(avgC)} L/100km. Nên kiểm tra áp suất lốp, lọc gió, nhớt và thói quen tăng ga.`
       :`Ổn định: ${num(rc)} L/100km gần đây, xấp xỉ mức trung bình ${num(avgC)} L/100km.`;
   }
+  let off='';
+  if(+v.cons){const df=Math.round((avgC/v.cons-1)*100);off+=`<p class="sec">So với mức công bố ${num(+v.cons)} L/100km: thực tế của bạn ${df<=-3?'<b>tiết kiệm hơn '+(-df)+'%</b>':df>=3?'<b>hao hơn '+df+'%</b>':'<b>xấp xỉ</b>'} so với công bố.</p>`}
+  if(+v.tank)off+=`<p class="sec">Mỗi bình đầy (${num(+v.tank)} L) đi được khoảng <b>${Math.round(v.tank/avgC*100).toLocaleString('vi-VN')} km</b> theo mức tiêu hao thực tế.</p>`;
   const k=(a,b)=>`<div class="kpi"><small>${a}</small><b>${b}</b></div>`;
   return H+`<div class="stats" style="margin-top:0">
     ${k('Trung bình',num(tk/tl)+' km/lít')}${k('Tiêu hao',num(avgC)+' L/100km')}
     ${k('Mỗi lần đổ đầy đi được','~'+Math.round(ravg).toLocaleString('vi-VN')+' km')}${k('Chi phí xăng / km',money(ta/tk))}
     ${k('Lần đổ tiếp theo ở','~'+nextOdo.toLocaleString('vi-VN')+' km')}${k('Còn khoảng',remain>0?'~'+remain.toLocaleString('vi-VN')+' km':'Đã đến lúc đổ')}</div>
     <p class="sec">${remain>0?'Xe còn đi được khoảng <b>'+remain.toLocaleString('vi-VN')+' km</b> nữa thì nên đổ xăng (đồng hồ ~'+nextOdo.toLocaleString('vi-VN')+' km).'+eta:'Theo thói quen chạy của bạn, xe đã đến lúc đổ xăng.'}</p>
-    <p class="sec">${verdict}</p>
+    <p class="sec">${verdict}</p>${off}
     <p class="empty" style="margin:6px 0 0;font-size:12px">Dự đoán dựa trên 3 lần đổ đầy gần nhất, chính xác hơn khi có nhiều dữ liệu.</p></div>`;
 }
 
@@ -291,6 +349,7 @@ function renderForm(ed){
   else if(tab==='other')h=d+odo(false)+note('Gửi xe, phí cầu đường, bảo hiểm, rửa xe…',true)+mny('f_amt','Số tiền (VNĐ)',x.amount,true);
   else h=d+odo(false)+note('Chạy xe công nghệ, chở hàng, cho thuê…',true)+mny('f_amt','Số tiền (VNĐ)',x.amount,true);
   $('#ef').innerHTML=h+`<div class="full row"><button class="pri" type="submit">${ed?'Cập nhật':'Lưu '+TYPES[tab][0].toLowerCase()}</button>${ed?'<button type="button" id="ecancel">Hủy sửa</button>':''}</div>`;
+  renderGauge();
 }
 
 function renderAll(){renderVeh();renderDash();renderForm()}
@@ -302,6 +361,7 @@ $('#ef').oninput=e=>{
   if(tab!=='fuel')return;
   if(t.id==='f_p'||t.id==='f_amt'){const p=pn('f_p'),a=pn('f_amt');if(p&&a)$('#f_l').value=Math.round(a/p*100)/100}
   else if(t.id==='f_l'){const p=pn('f_p'),l=+t.value;if(p&&l)setM('f_amt',l*p)}
+  renderGauge();
 };
 $('#ef').onclick=e=>{if(e.target.id==='ecancel')renderForm()};
 $('#hf').onclick=e=>{const b=e.target.closest('[data-hf]');if(b){hist=b.dataset.hf;renderDash()}};
@@ -325,15 +385,15 @@ $('#list').onclick=e=>{
 };
 $('#veh').onchange=e=>{S.cur=e.target.value;save();armed=false;renderAll()};
 $('#per').onchange=e=>{per=e.target.value;renderDash()};
-const openV=ed=>{editV=ed;const v=cur();$('#vh').textContent=ed?'Sửa xe':'Thêm xe';$('#vn').value=ed?v.name:'';$('#vp').value=ed?(v.plate||''):'';$('#vo').value=ed?(v.odo||''):'';$('#vform').dataset.open='1';renderVeh();$('#vn').focus()};
+const openV=ed=>{editV=ed;const v=cur();$('#vh').textContent=ed?'Sửa xe':'Thêm xe';$('#vn').value=ed?v.name:'';$('#vp').value=ed?(v.plate||''):'';$('#vo').value=ed?(v.odo||''):'';$('#vt').value=ed?(v.tank||''):'';$('#vc').value=ed?(v.cons||''):'';$('#vform').dataset.open='1';renderVeh();$('#vn').focus()};
 $('#addv').onclick=()=>openV(false);
 $('#editv').onclick=()=>{if(cur())openV(true)};
 $('#vcancel').onclick=()=>{delete $('#vform').dataset.open;editV=false;renderVeh()};
 $('#vf').onsubmit=e=>{
   e.preventDefault();
-  const name=$('#vn').value.trim(),plate=$('#vp').value.trim(),odo=+$('#vo').value||0;
-  if(editV&&cur())Object.assign(cur(),{name,plate,odo,u:Date.now()});
-  else{const v={id:uid(),name,plate,odo,u:Date.now()};S.vehicles.push(v);S.cur=v.id}
+  const name=$('#vn').value.trim(),plate=$('#vp').value.trim(),odo=+$('#vo').value||0,tank=+$('#vt').value||0,cons=+$('#vc').value||0;
+  if(editV&&cur())Object.assign(cur(),{name,plate,odo,tank,cons,u:Date.now()});
+  else{const v={id:uid(),name,plate,odo,tank,cons,u:Date.now()};S.vehicles.push(v);S.cur=v.id}
   save();delete $('#vform').dataset.open;editV=false;e.target.reset();renderAll();
 };
 $('#delv').onclick=e=>{
@@ -391,8 +451,9 @@ const setSync=t=>{$('#sync').textContent=t};
 const byId=(a,b)=>a.id<b.id?-1:a.id>b.id?1:0;
 const dead=it=>S.tomb[it.id]>=(it.u||0);
 let tok=null,tokExp=0,tc=null,pend=null,fileId=null,connected=false,busy2=false;
-const DEF_CID='DAN_CLIENT_ID_VAO_DAY.apps.googleusercontent.com';
-let CLIENT_ID=DEF_CID;try{CLIENT_ID=localStorage.getItem('soxe_cid')||DEF_CID}catch(e){}
+const DEF_CID='1032619748060-172d176jjc9bkat78g547rt2vcen3t2c.apps.googleusercontent.com';
+let CLIENT_ID=DEF_CID;
+if(DEF_CID.indexOf('DAN_')===0){try{CLIENT_ID=localStorage.getItem('soxe_cid')||DEF_CID}catch(e){}}
 const build=()=>({app:'so-xe',version:1,vehicles:S.vehicles,entries:S.entries,tomb:S.tomb});
 const tokenOk=()=>tok&&Date.now()<tokExp-60000;
 function getToken(){
