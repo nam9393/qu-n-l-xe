@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sổ Xe – Quản lý chi phí nuôi xe</title>
+<!-- Đặt CLIENT_ID của bạn ở dòng "const CLIENT_ID=" trong phần script. Xem README.md -->
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9eee9;--card:#fff;--ink:#14262b;--mut:#5a6d71;--line:#d3dbd5;--acc:#0b6b5d;--accT:#fff;--in:#1c8749;--out:#c2410c;--fuel:#d48a00;--svc:#3a6db4;--oth:#8b5fa9;--inp:#f6f8f6;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1b1e;--card:#172629;--ink:#e6efec;--mut:#92a7aa;--line:#2a3d41;--acc:#3ec5ad;--accT:#06231e;--in:#4cc982;--out:#ff8a4d;--fuel:#f0b429;--svc:#78a8ec;--oth:#c49be0;--inp:#0f1b1e;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1b1e;--card:#172629;--ink:#e6efec;--mut:#92a7aa;--line:#2a3d41;--acc:#3ec5ad;--accT:#06231e;--in:#4cc982;--out:#ff8a4d;--fuel:#f0b429;--svc:#78a8ec;--oth:#c49be0;--inp:#0f1b1e;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px 14px 48px}
+h1{font-size:22px;margin:0;font-weight:800;letter-spacing:-.01em}
+h2{font-size:15px;margin:0 0 10px;font-weight:700}
+.top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,input,textarea,button{font:inherit;color:var(--ink)}
+select,input,textarea{background:var(--inp);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+input:focus,select:focus,button:focus-visible,textarea:focus{outline:2px solid var(--acc);outline-offset:1px}
+button{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+button.pri{background:var(--acc);color:var(--accT);border-color:var(--acc);font-weight:700}
+button.lnk{border:0;background:none;color:var(--mut);padding:4px 6px;font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{padding:10px 12px;border-radius:10px;background:var(--inp);border:1px solid var(--line)}
+.kpi small{color:var(--mut);display:block;font-size:12px}
+.kpi b{font-size:17px;font-weight:800;display:block;overflow-wrap:anywhere}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.stats .kpi b{font-size:15px}
+.in{color:var(--in)}.out{color:var(--out)}
+.tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}
+.tabs button{white-space:nowrap}
+.tabs button[aria-pressed=true]{background:var(--acc);color:var(--accT);border-color:var(--acc);font-weight:700}
+form{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+form label{display:flex;flex-direction:column;font-size:12px;color:var(--mut);gap:3px}
+form .full{grid-column:1/-1}
+form .chk{flex-direction:row;align-items:center;gap:8px;font-size:14px;color:var(--ink)}
+.bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--line);margin:4px 0 8px}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:13px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.item{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.item:first-of-type{border-top:0}
+.item .t{flex:1;min-width:0}
+.item .t b{display:block;font-weight:500;overflow-wrap:anywhere}
+.item .t small{color:var(--mut)}
+.item .amt{font-weight:700;white-space:nowrap}
+.tag{width:6px;align-self:stretch;border-radius:3px}
+.empty{color:var(--mut);padding:8px 0}
+textarea{width:100%;height:90px;font-size:12px}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--mut);font-size:10px;font-family:inherit}
+@media(max-width:520px){.kpis{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div><h1>Sổ Xe</h1><small id="sync" class="empty" role="status"></small></div>
+    <div class="row">
+      <select id="veh" aria-label="Chọn xe"></select>
+      <select id="per" aria-label="Khoảng thời gian">
+        <option value="month">Tháng này</option>
+        <option value="90">90 ngày</option>
+        <option value="year">Năm nay</option>
+        <option value="all">Tất cả</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="vform" class="card" hidden>
+    <h2>Thêm xe</h2>
+    <form id="vf">
+      <label class="full">Tên xe<input id="vn" required placeholder="Ví dụ: Honda Vision, Vios 2020"></label>
+      <label>Biển số<input id="vp" placeholder="51F-123.45"></label>
+      <label>Số km hiện tại<input id="vo" type="number" min="0" placeholder="0"></label>
+      <div class="full row"><button class="pri" type="submit">Lưu xe</button><button type="button" id="vcancel">Hủy</button></div>
+    </form>
+  </div>
+
+  <div id="dash"></div>
+
+  <div class="card" id="entry">
+    <h2>Thêm khoản mới</h2>
+    <div class="tabs" id="tabs"></div>
+    <form id="ef"></form>
+  </div>
+
+  <div class="card"><h2>Lịch sử</h2><div id="list"></div></div>
+
+  <div class="card">
+    <h2>Quản lý dữ liệu</h2>
+    <div class="row" style="margin-bottom:8px">
+      <button id="addv">Thêm xe khác</button>
+      <button id="delv">Xóa xe này</button>
+      <button id="exp">Tải file sao lưu (.json)</button>
+      <button id="cp">Sao chép bản sao lưu</button>
+      <button id="gsign" class="pri">Kết nối Google Drive</button>
+      <button id="csv">Xuất Excel (.csv)</button>
+      <button id="imp">Mở file sao lưu…</button>
+      <input id="file" type="file" accept=".json,application/json" hidden>
+    </div>
+    <p id="msg" class="empty" role="status" style="margin:6px 0 0">Dữ liệu được lưu trong trình duyệt trên thiết bị này. Hãy tải file sao lưu định kỳ để chuyển sang máy khác hoặc phòng khi mất dữ liệu.</p>
+    <details id="manual" hidden><summary class="empty">Cách thủ công: sao chép và dán dữ liệu</summary>
+      <textarea id="bk" placeholder="Dữ liệu hiện ra ở đây. Dán dữ liệu sao lưu cũ vào để khôi phục." aria-label="Dữ liệu sao lưu"></textarea>
+      <div class="row" style="margin-top:6px"><button id="exp2">Hiện dữ liệu</button><button id="imp2">Khôi phục từ ô</button></div>
+    </details>
+  </div>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+let S={vehicles:[],entries:[],cur:null};
+try{const r=localStorage.getItem('soxe_v1');if(r){const p=JSON.parse(r);if(p&&p.vehicles&&p.entries)S=p}}catch(e){}
+S.tomb=S.tomb||{};
+const save=()=>{try{localStorage.setItem('soxe_v1',JSON.stringify(S))}catch(e){}schedulePush()};
+const uid=()=>Math.random().toString(36).slice(2,10);
+const money=n=>Math.round(n).toLocaleString('vi-VN')+' ₫';
+const num=n=>Math.round(n*10)/10;
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const TYPES={fuel:['Đổ xăng','--fuel'],service:['Bảo dưỡng','--svc'],other:['Chi phí khác','--oth'],income:['Thu nhập','--in']};
+let tab='fuel',per='month',armed=false;
+const today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+
+function inP(d){
+  const t=today();
+  if(per==='all')return true;
+  if(per==='month')return d.slice(0,7)===t.slice(0,7);
+  if(per==='year')return d.slice(0,4)===t.slice(0,4);
+  const lim=new Date(Date.now()-90*864e5).toISOString().slice(0,10);return d>=lim;
+}
+const cur=()=>S.vehicles.find(v=>v.id===S.cur);
+
+function renderVeh(){
+  const sel=$('#veh');
+  sel.innerHTML=S.vehicles.map(v=>`<option value="${v.id}">${esc(v.name)}${v.plate?' · '+esc(v.plate):''}</option>`).join('');
+  if(S.cur)sel.value=S.cur;
+  sel.hidden=!S.vehicles.length;
+  $('#vform').hidden=S.vehicles.length>0&&!$('#vform').dataset.open;
+  $('#vcancel').hidden=!S.vehicles.length;
+  $('#entry').hidden=!S.vehicles.length;
+}
+
+function stats(){
+  const per_=S.entries.filter(e=>e.v===S.cur&&inP(e.date));
+  const out=per_.filter(e=>e.type!=='income'),inc=per_.filter(e=>e.type==='income');
+  const sum=a=>a.reduce((s,e)=>s+e.amount,0);
+  const odos=per_.filter(e=>e.odo).map(e=>e.odo);
+  const km=odos.length>1?Math.max(...odos)-Math.min(...odos):0;
+  const fl=per_.filter(e=>e.type==='fuel'&&e.odo).sort((a,b)=>a.odo-b.odo);
+  const fulls=fl.filter(e=>e.full);
+  let cons=0;
+  if(fulls.length>1){
+    const a=fulls[0],b=fulls[fulls.length-1];
+    const lit=fl.filter(e=>e.odo>a.odo&&e.odo<=b.odo).reduce((s,e)=>s+(e.liters||0),0);
+    cons=lit/(b.odo-a.odo)*100;
+  }
+  return {per_,tot:sum(out),inc:sum(inc),km,cons,
+    cat:{fuel:sum(out.filter(e=>e.type==='fuel')),service:sum(out.filter(e=>e.type==='service')),other:sum(out.filter(e=>e.type==='other'))}};
+}
+
+function chart(){
+  const now=new Date(),ms=[];
+  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);ms.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'))}
+  const data=ms.map(m=>{
+    const es=S.entries.filter(e=>e.v===S.cur&&e.date.slice(0,7)===m);
+    return {m,i:es.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0),o:es.filter(e=>e.type!=='income').reduce((s,e)=>s+e.amount,0)};
+  });
+  const mx=Math.max(1,...data.flatMap(d=>[d.i,d.o]));
+  const W=360,H=140,bw=16,gap=(W-ms.length*bw*2)/(ms.length+1);
+  let g='';
+  data.forEach((d,k)=>{
+    const x=gap+k*(bw*2+gap),hi=d.i/mx*100,ho=d.o/mx*100;
+    g+=`<rect x="${x}" y="${H-20-hi}" width="${bw}" height="${hi}" rx="2" style="fill:var(--in)"/>`;
+    g+=`<rect x="${x+bw}" y="${H-20-ho}" width="${bw}" height="${ho}" rx="2" style="fill:var(--out)"/>`;
+    g+=`<text x="${x+bw}" y="${H-6}" text-anchor="middle">T${d.m.slice(5)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Thu và chi 6 tháng gần nhất">${g}</svg>
+  <div class="leg"><span><i class="dot" style="background:var(--in)"></i>Thu</span><span><i class="dot" style="background:var(--out)"></i>Chi</span><span style="color:var(--mut)">6 tháng gần nhất</span></div>`;
+}
+
+function renderDash(){
+  const v=cur();
+  if(!v){$('#dash').innerHTML='<div class="card empty">Thêm chiếc xe đầu tiên để bắt đầu ghi chi phí.</div>';$('#list').innerHTML='';return}
+  const s=stats(),net=s.inc-s.tot;
+  const cats=['fuel','service','other'];
+  const bar=s.tot>0?cats.map(c=>`<span style="width:${s.cat[c]/s.tot*100}%;background:var(${TYPES[c][1]})"></span>`).join(''):'';
+  const leg=cats.map(c=>`<span><i class="dot" style="background:var(${TYPES[c][1]})"></i>${TYPES[c][0]}: <b>${money(s.cat[c])}</b>${s.tot?' ('+Math.round(s.cat[c]/s.tot*100)+'%)':''}</span>`).join('');
+  $('#dash').innerHTML=`
+  <div class="card">
+    <div class="kpis">
+      <div class="kpi"><small>Tổng chi</small><b class="out">${money(s.tot)}</b></div>
+      <div class="kpi"><small>Tổng thu</small><b class="in">${money(s.inc)}</b></div>
+      <div class="kpi"><small>${net>=0?'Lãi':'Lỗ'}</small><b class="${net>=0?'in':'out'}">${money(Math.abs(net))}</b></div>
+    </div>
+    <div class="stats">
+      <div class="kpi"><small>Quãng đường</small><b>${s.km?s.km.toLocaleString('vi-VN')+' km':'–'}</b></div>
+      <div class="kpi"><small>Chi phí / km</small><b>${s.km?money(s.tot/s.km):'–'}</b></div>
+      <div class="kpi"><small>Tiêu hao</small><b>${s.cons?num(s.cons)+' L/100km':'–'}</b></div>
+      <div class="kpi"><small>Giá xăng gần nhất</small><b>${(()=>{const f=S.entries.filter(e=>e.v===S.cur&&e.type==='fuel'&&e.price).sort((a,b)=>b.date.localeCompare(a.date))[0];return f?money(f.price)+'/L':'–'})()}</b></div>
+    </div>
+  </div>
+  <div class="card"><h2>Chi phí theo loại</h2>
+    <div class="bar">${bar}</div><div class="leg">${leg}</div>
+    ${s.tot?'':'<p class="empty" style="margin:8px 0 0">Chưa có khoản chi trong khoảng thời gian này.</p>'}
+  </div>
+  <div class="card"><h2>Thu chi theo tháng</h2>${chart()}</div>`;
+  const items=s.per_.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.odo-a.odo);
+  $('#list').innerHTML=items.length?items.map(e=>{
+    const T=TYPES[e.type],isIn=e.type==='income';
+    const sub=[e.date.split('-').reverse().join('/'),e.odo?e.odo.toLocaleString('vi-VN')+' km':'',e.type==='fuel'&&e.liters?num(e.liters)+' L'+(e.full?' (đầy bình)':''):''].filter(Boolean).join(' · ');
+    return `<div class="item"><span class="tag" style="background:var(${T[1]})"></span>
+      <div class="t"><b>${esc(e.note||T[0])}</b><small>${T[0]} · ${sub}</small></div>
+      <span class="amt ${isIn?'in':'out'}">${isIn?'+':'−'}${money(e.amount)}</span>
+      <button class="lnk" data-del="${e.id}" aria-label="Xóa khoản này">Xóa</button></div>`}).join(''):'<div class="empty">Chưa có khoản nào trong khoảng thời gian này.</div>';
+}
+
+function renderForm(){
+  $('#tabs').innerHTML=Object.keys(TYPES).map(k=>`<button type="button" data-tab="${k}" aria-pressed="${k===tab}">${TYPES[k][0]}</button>`).join('');
+  const v=cur();
+  const last=v?Math.max(v.odo||0,...S.entries.filter(e=>e.v===v.id&&e.odo).map(e=>e.odo)):0;
+  const d=`<label>Ngày<input id="f_date" type="date" value="${today()}" required></label>`;
+  const odo=(req)=>`<label>Số km trên đồng hồ<input id="f_odo" type="number" min="0" ${req?'required':''} placeholder="${last||0}"></label>`;
+  let h='';
+  if(tab==='fuel')h=d+odo(true)+`<label>Số lít<input id="f_l" type="number" step="0.01" min="0" required></label>
+    <label>Giá mỗi lít (₫)<input id="f_p" type="number" min="0" required></label>
+    <label>Thành tiền (₫)<input id="f_amt" type="number" min="0" required></label>
+    <label class="chk"><input id="f_full" type="checkbox" checked> Đổ đầy bình</label>
+    <label class="full">Ghi chú<input id="f_note" placeholder="Ví dụ: A95, cây xăng Petrolimex"></label>`;
+  else if(tab==='service')h=d+odo(false)+`<label class="full">Hạng mục<input id="f_note" required placeholder="Thay nhớt, lốp, má phanh…"></label><label class="full">Chi phí (₫)<input id="f_amt" type="number" min="0" required></label>`;
+  else if(tab==='other')h=d+odo(false)+`<label class="full">Khoản chi<input id="f_note" required placeholder="Gửi xe, phí cầu đường, bảo hiểm, rửa xe…"></label><label class="full">Số tiền (₫)<input id="f_amt" type="number" min="0" required></label>`;
+  else h=d+odo(false)+`<label class="full">Nguồn thu<input id="f_note" required placeholder="Chạy xe công nghệ, chở hàng, cho thuê…"></label><label class="full">Số tiền (₫)<input id="f_amt" type="number" min="0" required></label>`;
+  $('#ef').innerHTML=h+`<div class="full"><button class="pri" type="submit">Lưu ${TYPES[tab][0].toLowerCase()}</button></div>`;
+  if(tab==='fuel'){
+    const calc=()=>{const l=+$('#f_l').value,p=+$('#f_p').value;if(l&&p)$('#f_amt').value=Math.round(l*p)};
+    $('#f_l').oninput=calc;$('#f_p').oninput=calc;
+  }
+}
+
+function renderAll(){renderVeh();renderDash();renderForm()}
+
+$('#tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(b){tab=b.dataset.tab;renderForm()}};
+$('#ef').onsubmit=e=>{
+  e.preventDefault();
+  const g=id=>{const el=$('#'+id);return el?el.value:''};
+  const en={id:uid(),v:S.cur,type:tab,date:g('f_date'),odo:+g('f_odo')||0,note:g('f_note').trim(),amount:+g('f_amt'),u:Date.now()};
+  if(!(en.amount>0))return;
+  if(tab==='fuel'){en.liters=+g('f_l');en.price=+g('f_p');en.full=$('#f_full').checked}
+  S.entries.push(en);
+  const v=cur();if(en.odo>(v.odo||0)){v.odo=en.odo;v.u=Date.now()}
+  save();renderAll();
+};
+$('#list').onclick=e=>{const b=e.target.closest('[data-del]');if(b){S.tomb[b.dataset.del]=Date.now();S.entries=S.entries.filter(x=>x.id!==b.dataset.del);save();renderAll()}};
+$('#veh').onchange=e=>{S.cur=e.target.value;save();armed=false;renderAll()};
+$('#per').onchange=e=>{per=e.target.value;renderDash()};
+$('#addv').onclick=()=>{$('#vform').dataset.open='1';renderVeh();$('#vn').focus()};
+$('#vcancel').onclick=()=>{delete $('#vform').dataset.open;renderVeh()};
+$('#vf').onsubmit=e=>{
+  e.preventDefault();
+  const v={id:uid(),name:$('#vn').value.trim(),plate:$('#vp').value.trim(),odo:+$('#vo').value||0,u:Date.now()};
+  S.vehicles.push(v);S.cur=v.id;save();
+  delete $('#vform').dataset.open;e.target.reset();renderAll();
+};
+$('#delv').onclick=e=>{
+  if(!cur())return;
+  if(!armed){armed=true;e.target.textContent='Bấm lần nữa để xóa xe và toàn bộ dữ liệu';return}
+  const tt=Date.now();S.tomb[S.cur]=tt;S.entries.filter(x=>x.v===S.cur).forEach(x=>{S.tomb[x.id]=tt});S.entries=S.entries.filter(x=>x.v!==S.cur);S.vehicles=S.vehicles.filter(x=>x.id!==S.cur);
+  S.cur=S.vehicles[0]?S.vehicles[0].id:null;armed=false;e.target.textContent='Xóa xe này';save();renderAll();
+};
+const say=t=>{$('#msg').textContent=t};
+async function saveFile(name,data){
+  try{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([data],{type:name.endsWith('.csv')?'text/csv;charset=utf-8':'application/json'}));
+    a.download=name;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);say('Đã tải file '+name+'.');
+  }catch(e){say('Không tải được file.')}
+}
+function merge(p){
+  if(!p||!Array.isArray(p.vehicles)||!Array.isArray(p.entries))throw 0;
+  const vi=new Set(S.vehicles.map(v=>v.id)),ei=new Set(S.entries.map(e=>e.id));
+  let nv=0,ne=0;
+  p.vehicles.forEach(v=>{if(v&&v.id&&typeof v.name==='string'&&!vi.has(v.id)){v.u=Date.now();delete S.tomb[v.id];S.vehicles.push(v);vi.add(v.id);nv++}});
+  p.entries.forEach(e=>{if(e&&e.id&&e.v&&TYPES[e.type]&&typeof e.date==='string'&&typeof e.amount==='number'&&!ei.has(e.id)&&S.vehicles.some(v=>v.id===e.v)){e.u=Date.now();delete S.tomb[e.id];S.entries.push(e);ei.add(e.id);ne++}});
+  if(!cur()&&S.vehicles[0])S.cur=S.vehicles[0].id;
+  save();renderAll();say('Đã khôi phục '+nv+' xe và '+ne+' khoản mới. Dữ liệu trùng được bỏ qua.');
+}
+$('#exp').onclick=()=>saveFile('so-xe-sao-luu-'+today()+'.json',JSON.stringify({app:'so-xe',version:1,exported:today(),vehicles:S.vehicles,entries:S.entries},null,1));
+$('#csv').onclick=()=>{
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const rows=[['Xe','Biển số','Ngày','Loại','Số km','Số lít','Giá/lít','Số tiền','Đầy bình','Ghi chú']];
+  S.entries.slice().sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
+    const v=S.vehicles.find(x=>x.id===e.v)||{};
+    rows.push([v.name,v.plate,e.date,TYPES[e.type][0],e.odo||'',e.liters||'',e.price||'',e.amount,e.type==='fuel'?(e.full?'Có':'Không'):'',e.note]);
+  });
+  saveFile('so-xe-'+today()+'.csv','\ufeff'+rows.map(r=>r.map(q).join(';')).join('\r\n'));
+};
+$('#cp').onclick=async()=>{
+  const txt=JSON.stringify({app:'so-xe',version:1,exported:today(),vehicles:S.vehicles,entries:S.entries});
+  try{await navigator.clipboard.writeText(txt);say('Đã sao chép bản sao lưu. Hãy dán vào một file .json trên Google Drive, hoặc nhắn Claude để lưu giúp.')}
+  catch(e){const m=$('#manual');m.hidden=false;m.open=true;$('#bk').value=txt;$('#bk').select();say('Trình duyệt không cho sao chép tự động. Hãy chọn toàn bộ nội dung trong ô bên dưới và sao chép.')}
+};
+$('#imp').onclick=()=>$('#file').click();
+$('#file').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{merge(JSON.parse(r.result))}catch(x){say('File không hợp lệ. Hãy chọn đúng file .json do Sổ Xe tạo ra.')}e.target.value=''};
+  r.readAsText(f);
+};
+$('#exp2').onclick=()=>{$('#bk').value=JSON.stringify({app:'so-xe',version:1,vehicles:S.vehicles,entries:S.entries});$('#bk').select()};
+$('#imp2').onclick=()=>{try{merge(JSON.parse($('#bk').value));$('#bk').value=''}catch(x){say('Dữ liệu không hợp lệ. Hãy dán lại toàn bộ nội dung đã sao chép.')}};
+/* ===== Đồng bộ nhiều máy (cùng tài khoản claude.ai) ===== */
+let col=null,synced=false,timer=0,pushing=false,again=false,force=false;
+const sent={};
+const setSync=t=>{$('#sync').textContent=t};
+const byId=(a,b)=>a.id<b.id?-1:a.id>b.id?1:0;
+const dead=it=>S.tomb[it.id]>=(it.u||0);
+let tok=null,tokExp=0,tc=null,pend=null,fileId=null,connected=false,busy2=false;
+const CLIENT_ID='DAN_CLIENT_ID_VAO_DAY.apps.googleusercontent.com';
+const build=()=>({app:'so-xe',version:1,vehicles:S.vehicles,entries:S.entries,tomb:S.tomb});
+const tokenOk=()=>tok&&Date.now()<tokExp-60000;
+function getToken(){
+  return new Promise((res,rej)=>{
+    if(tokenOk())return res(tok);
+    if(!tc)return rej('nogsi');
+    pend={cb:r=>{if(r&&r.access_token){tok=r.access_token;tokExp=Date.now()+(r.expires_in||3600)*1000;try{localStorage.setItem('soxe_gd','1')}catch(e){}res(tok)}else rej((r&&r.error)||'denied')},err:e=>rej((e&&e.type)||'popup')};
+    tc.requestAccessToken({prompt:''});
+  });
+}
+async function gd(url,opt){
+  opt=opt||{};
+  const t=await getToken();
+  const r=await fetch(url,Object.assign({},opt,{headers:Object.assign({Authorization:'Bearer '+t},opt.headers||{})}));
+  if(r.status===401){tok=null;throw new Error('auth')}
+  if(!r.ok)throw new Error('http'+r.status);
+  return r;
+}
+async function pull(){
+  const q=encodeURIComponent("name='so-xe.json'");
+  const j=await(await gd('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q='+q+'&fields=files(id)')).json();
+  fileId=j.files&&j.files[0]?j.files[0].id:null;
+  if(!fileId)return null;
+  return (await gd('https://www.googleapis.com/drive/v3/files/'+fileId+'?alt=media')).json();
+}
+async function upload(){
+  const body=JSON.stringify(build());
+  if(!fileId){
+    const b='soxe'+Date.now(),m=JSON.stringify({name:'so-xe.json',parents:['appDataFolder']});
+    const r=await gd('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body:'--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+m+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+body+'\r\n--'+b+'--'});
+    fileId=(await r.json()).id;
+  }else await gd('https://www.googleapis.com/upload/drive/v3/files/'+fileId+'?uploadType=media',{method:'PATCH',headers:{'Content-Type':'application/json'},body});
+}
+function schedulePush(){
+  if(!connected)return;
+  if(!tokenOk())getToken().catch(()=>{});
+  clearTimeout(timer);timer=setTimeout(syncNow,700);
+}
+async function syncNow(){
+  if(busy2){again=true;return}
+  busy2=true;setSync('Đang đồng bộ Google Drive…');
+  try{
+    const d=await pull();
+    let r={ch:0,back:1};
+    if(d)r=mergeCloud({meta:{vehicles:d.vehicles||[],tomb:d.tomb||{}},all:{entries:d.entries||[]}});
+    if(r.ch){try{localStorage.setItem('soxe_v1',JSON.stringify(S))}catch(e){}renderVeh();renderDash()}
+    if(!d||r.back>0)await upload();
+    setSync('Đã đồng bộ Google Drive lúc '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}));
+  }catch(e){setSync('Chưa đồng bộ được. Bấm “Kết nối Google Drive” để thử lại')}
+  busy2=false;
+  if(again){again=false;schedulePush()}
+}
+function mergeCloud(docs){
+  let ch=0,back=0;
+  const meta=docs.meta||{},ct=meta.tomb||{};
+  Object.keys(ct).forEach(id=>{if((S.tomb[id]||0)<ct[id]){S.tomb[id]=ct[id];ch++}});
+  Object.keys(S.tomb).forEach(id=>{if((ct[id]||0)<S.tomb[id])back++});
+  const seen=new Set();
+  const take=(arr,it)=>{
+    if(!it||!it.id)return;
+    seen.add(it.id);
+    if(dead(it))return;
+    const i=arr.findIndex(x=>x.id===it.id),c=JSON.parse(JSON.stringify(it));
+    if(i<0){arr.push(c);ch++}
+    else if((it.u||0)>(arr[i].u||0)){arr[i]=c;ch++}
+    else if((it.u||0)<(arr[i].u||0))back++;
+  };
+  (meta.vehicles||[]).forEach(v=>take(S.vehicles,v));
+  Object.keys(docs).forEach(k=>{if(k!=='meta')(docs[k].entries||[]).forEach(e=>take(S.entries,e))});
+  const nv=S.vehicles.filter(x=>!dead(x)),ne=S.entries.filter(x=>!dead(x));
+  if(nv.length!==S.vehicles.length||ne.length!==S.entries.length)ch++;
+  S.vehicles=nv;S.entries=ne;
+  S.vehicles.concat(S.entries).forEach(x=>{if(!seen.has(x.id))back++});
+  if(!cur()&&S.vehicles[0]){S.cur=S.vehicles[0].id;ch++}
+  return {ch,back};
+}
+function initSync(){
+  if(CLIENT_ID.indexOf('DAN_')===0){setSync('Chưa cấu hình Google Drive (xem README)');$('#gsign').hidden=true;return}
+  let n=0;
+  const w=setInterval(()=>{
+    if(window.google&&google.accounts&&google.accounts.oauth2){clearInterval(w);setup()}
+    else if(++n>50){clearInterval(w);setSync('Không tải được dịch vụ Google. Kiểm tra mạng.')}
+  },200);
+}
+function setup(){
+  tc=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:'https://www.googleapis.com/auth/drive.appdata',callback:r=>pend&&pend.cb(r),error_callback:e=>pend&&pend.err(e)});
+  setSync('Chưa kết nối Google Drive');
+  let m=false;try{m=localStorage.getItem('soxe_gd')==='1'}catch(e){}
+  if(m)connect();
+}
+async function connect(){
+  try{await getToken();connected=true;await syncNow()}
+  catch(e){setSync('Bấm “Kết nối Google Drive” để đăng nhập')}
+}
+$('#gsign').onclick=connect;
+setInterval(()=>{if(connected&&tokenOk()&&!document.hidden)syncNow()},60000);
+document.addEventListener('visibilitychange',()=>{if(connected&&!document.hidden)syncNow().catch(()=>{})});
+if(S.vehicles.length&&!cur())S.cur=S.vehicles[0].id;
+renderAll();
+initSync();
+</script>
+</body>
+</html>
