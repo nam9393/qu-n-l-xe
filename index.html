@@ -51,6 +51,8 @@ form .chk{flex-direction:row;align-items:center;gap:8px;font-size:14px;color:var
 .tag{width:6px;align-self:stretch;border-radius:3px}
 .empty{color:var(--mut);padding:8px 0}
 textarea{width:100%;height:90px;font-size:12px}
+.tabs button:disabled{opacity:.5;cursor:default}
+.sec{margin:10px 0 0;font-size:14px}
 svg{width:100%;height:auto;display:block}
 svg text{fill:var(--mut);font-size:10px;font-family:inherit}
 @media(max-width:520px){.kpis{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
@@ -73,7 +75,7 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
   </div>
 
   <div id="vform" class="card" hidden>
-    <h2>Thêm xe</h2>
+    <h2 id="vh">Thêm xe</h2>
     <form id="vf">
       <label class="full">Tên xe<input id="vn" required placeholder="Ví dụ: Honda Vision, Vios 2020"></label>
       <label>Biển số<input id="vp" placeholder="51F-123.45"></label>
@@ -85,17 +87,18 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
   <div id="dash"></div>
 
   <div class="card" id="entry">
-    <h2>Thêm khoản mới</h2>
+    <h2 id="eh">Thêm khoản mới</h2>
     <div class="tabs" id="tabs"></div>
     <form id="ef"></form>
   </div>
 
-  <div class="card"><h2>Lịch sử</h2><div id="list"></div></div>
+  <div class="card"><h2>Lịch sử</h2><div class="tabs" id="hf"></div><div id="list"></div></div>
 
   <div class="card">
     <h2>Quản lý dữ liệu</h2>
     <div class="row" style="margin-bottom:8px">
       <button id="addv">Thêm xe khác</button>
+      <button id="editv">Sửa xe này</button>
       <button id="delv">Xóa xe này</button>
       <button id="exp">Tải file sao lưu (.json)</button>
       <button id="cp">Sao chép bản sao lưu</button>
@@ -105,6 +108,7 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
       <input id="file" type="file" accept=".json,application/json" hidden>
     </div>
     <p id="msg" class="empty" role="status" style="margin:6px 0 0">Dữ liệu được lưu trong trình duyệt trên thiết bị này. Hãy tải file sao lưu định kỳ để chuyển sang máy khác hoặc phòng khi mất dữ liệu.</p>
+    <div id="cidbox" class="row" hidden style="margin-bottom:8px"><input id="cid" placeholder="Dán Google Client ID (…apps.googleusercontent.com)" style="flex:1" aria-label="Google Client ID"><button id="cidsave" class="pri">Lưu</button></div>
     <details id="manual" hidden><summary class="empty">Cách thủ công: sao chép và dán dữ liệu</summary>
       <textarea id="bk" placeholder="Dữ liệu hiện ra ở đây. Dán dữ liệu sao lưu cũ vào để khôi phục." aria-label="Dữ liệu sao lưu"></textarea>
       <div class="row" style="margin-top:6px"><button id="exp2">Hiện dữ liệu</button><button id="imp2">Khôi phục từ ô</button></div>
@@ -119,11 +123,14 @@ try{const r=localStorage.getItem('soxe_v1');if(r){const p=JSON.parse(r);if(p&&p.
 S.tomb=S.tomb||{};
 const save=()=>{try{localStorage.setItem('soxe_v1',JSON.stringify(S))}catch(e){}schedulePush()};
 const uid=()=>Math.random().toString(36).slice(2,10);
-const money=n=>Math.round(n).toLocaleString('vi-VN')+' ₫';
+const money=n=>Math.round(n).toLocaleString('vi-VN')+'VNĐ';
 const num=n=>Math.round(n*10)/10;
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const TYPES={fuel:['Đổ xăng','--fuel'],service:['Bảo dưỡng','--svc'],other:['Chi phí khác','--oth'],income:['Thu nhập','--in']};
-let tab='fuel',per='month',armed=false;
+let tab='fuel',per='month',armed=false,hist='all',editId=null,editV=false;
+const sm=(a,f)=>a.reduce((t,x)=>t+f(x),0);
+const pn=id=>+((($('#'+id)||{}).value||'').replace(/\D/g,''))||0;
+const setM=(id,n)=>{const el=$('#'+id);if(el)el.value=n?Math.round(n).toLocaleString('vi-VN'):''};
 const today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 
 function inP(d){
@@ -208,62 +215,126 @@ function renderDash(){
     <div class="bar">${bar}</div><div class="leg">${leg}</div>
     ${s.tot?'':'<p class="empty" style="margin:8px 0 0">Chưa có khoản chi trong khoảng thời gian này.</p>'}
   </div>
+  ${report()}
   <div class="card"><h2>Thu chi theo tháng</h2>${chart()}</div>`;
-  const items=s.per_.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.odo-a.odo);
-  $('#list').innerHTML=items.length?items.map(e=>{
+  const hf=['all'].concat(Object.keys(TYPES));
+  $('#hf').innerHTML=hf.map(k=>`<button type="button" data-hf="${k}" aria-pressed="${k===hist}">${k==='all'?'Tất cả':TYPES[k][0]}</button>`).join('');
+  const items=s.per_.filter(e=>hist==='all'||e.type===hist).sort((a,b)=>b.date.localeCompare(a.date)||b.odo-a.odo);
+  const head=hist==='all'||!items.length?'':`<p class="empty" style="margin:0 0 4px">${items.length} khoản · Tổng ${money(sm(items,e=>e.amount))}</p>`;
+  $('#list').innerHTML=items.length?head+items.map(e=>{
     const T=TYPES[e.type],isIn=e.type==='income';
-    const sub=[e.date.split('-').reverse().join('/'),e.odo?e.odo.toLocaleString('vi-VN')+' km':'',e.type==='fuel'&&e.liters?num(e.liters)+' L'+(e.full?' (đầy bình)':''):''].filter(Boolean).join(' · ');
+    const sub=[e.date.split('-').reverse().join('/'),e.odo?e.odo.toLocaleString('vi-VN')+' km':'',e.type==='fuel'&&e.liters?num(e.liters)+' L'+(e.price?' · '+money(e.price)+'/L':'')+(e.full?' · đầy bình':''):''].filter(Boolean).join(' · ');
     return `<div class="item"><span class="tag" style="background:var(${T[1]})"></span>
       <div class="t"><b>${esc(e.note||T[0])}</b><small>${T[0]} · ${sub}</small></div>
       <span class="amt ${isIn?'in':'out'}">${isIn?'+':'−'}${money(e.amount)}</span>
-      <button class="lnk" data-del="${e.id}" aria-label="Xóa khoản này">Xóa</button></div>`}).join(''):'<div class="empty">Chưa có khoản nào trong khoảng thời gian này.</div>';
+      <button class="lnk" data-edit="${e.id}" aria-label="Sửa khoản này">Sửa</button>
+      <button class="lnk" data-del="${e.id}" aria-label="Xóa khoản này">Xóa</button></div>`}).join(''):'<div class="empty">Chưa có khoản nào trong khoảng thời gian và loại này.</div>';
 }
 
-function renderForm(){
-  $('#tabs').innerHTML=Object.keys(TYPES).map(k=>`<button type="button" data-tab="${k}" aria-pressed="${k===tab}">${TYPES[k][0]}</button>`).join('');
+function report(){
   const v=cur();
-  const last=v?Math.max(v.odo||0,...S.entries.filter(e=>e.v===v.id&&e.odo).map(e=>e.odo)):0;
-  const d=`<label>Ngày<input id="f_date" type="date" value="${today()}" required></label>`;
-  const odo=(req)=>`<label>Số km trên đồng hồ<input id="f_odo" type="number" min="0" ${req?'required':''} placeholder="${last||0}"></label>`;
-  let h='';
-  if(tab==='fuel')h=d+odo(true)+`<label>Số lít<input id="f_l" type="number" step="0.01" min="0" required></label>
-    <label>Giá mỗi lít (₫)<input id="f_p" type="number" min="0" required></label>
-    <label>Thành tiền (₫)<input id="f_amt" type="number" min="0" required></label>
-    <label class="chk"><input id="f_full" type="checkbox" checked> Đổ đầy bình</label>
-    <label class="full">Ghi chú<input id="f_note" placeholder="Ví dụ: A95, cây xăng Petrolimex"></label>`;
-  else if(tab==='service')h=d+odo(false)+`<label class="full">Hạng mục<input id="f_note" required placeholder="Thay nhớt, lốp, má phanh…"></label><label class="full">Chi phí (₫)<input id="f_amt" type="number" min="0" required></label>`;
-  else if(tab==='other')h=d+odo(false)+`<label class="full">Khoản chi<input id="f_note" required placeholder="Gửi xe, phí cầu đường, bảo hiểm, rửa xe…"></label><label class="full">Số tiền (₫)<input id="f_amt" type="number" min="0" required></label>`;
-  else h=d+odo(false)+`<label class="full">Nguồn thu<input id="f_note" required placeholder="Chạy xe công nghệ, chở hàng, cho thuê…"></label><label class="full">Số tiền (₫)<input id="f_amt" type="number" min="0" required></label>`;
-  $('#ef').innerHTML=h+`<div class="full"><button class="pri" type="submit">Lưu ${TYPES[tab][0].toLowerCase()}</button></div>`;
-  if(tab==='fuel'){
-    const calc=()=>{const l=+$('#f_l').value,p=+$('#f_p').value;if(l&&p)$('#f_amt').value=Math.round(l*p)};
-    $('#f_l').oninput=calc;$('#f_p').oninput=calc;
+  const fl=S.entries.filter(e=>e.v===S.cur&&e.type==='fuel'&&e.odo).sort((a,b)=>a.odo-b.odo);
+  const fulls=fl.filter(e=>e.full);
+  const H='<div class="card"><h2>Báo cáo nhiên liệu</h2>';
+  if(fulls.length<2)return H+`<p class="empty" style="margin:0">Cần ít nhất 2 lần đổ đầy bình (có số km) để tính mức tiêu hao và dự đoán lần đổ tiếp theo. Hiện có ${fulls.length} lần.</p></div>`;
+  const ints=[];
+  for(let i=1;i<fulls.length;i++){
+    const a=fulls[i-1],b=fulls[i],km=b.odo-a.odo;
+    if(km<=0)continue;
+    const fs=fl.filter(e=>e.odo>a.odo&&e.odo<=b.odo);
+    ints.push({km,lit:sm(fs,e=>e.liters||0),amt:sm(fs,e=>e.amount)});
   }
+  if(!ints.length||!sm(ints,i=>i.lit))return H+'<p class="empty" style="margin:0">Số km các lần đổ đầy chưa tăng dần hoặc thiếu số lít. Hãy kiểm tra lại dữ liệu đã nhập.</p></div>';
+  const tk=sm(ints,i=>i.km),tl=sm(ints,i=>i.lit),ta=sm(ints,i=>i.amt);
+  const avgC=tl/tk*100;
+  const rec=ints.slice(-3),rk=sm(rec,i=>i.km),rc=sm(rec,i=>i.lit)/rk*100,ravg=rk/rec.length;
+  const last=fulls[fulls.length-1];
+  const curOdo=Math.max(v.odo||0,...S.entries.filter(e=>e.v===S.cur&&e.odo).map(e=>e.odo));
+  const nextOdo=Math.round(last.odo+ravg),remain=nextOdo-curOdo;
+  const days=(new Date(last.date)-new Date(fulls[0].date))/864e5;
+  let eta='';
+  if(days>0&&remain>0){const dt=new Date(Date.now()+remain/(tk/days)*864e5);eta=' Ước tính vào khoảng '+dt.toLocaleDateString('vi-VN')+'.'}
+  let verdict;
+  if(ints.length<3)verdict='Chưa đủ dữ liệu để so sánh xu hướng, cần thêm vài lần đổ đầy bình.';
+  else{
+    const r=rc/avgC;
+    verdict=r<=.95?`Tiết kiệm: ${num(rc)} L/100km trong các lần gần đây, thấp hơn mức trung bình ${num(avgC)} L/100km của xe.`
+      :r>=1.05?`Đang hao hơn: ${num(rc)} L/100km gần đây, cao hơn mức trung bình ${num(avgC)} L/100km. Nên kiểm tra áp suất lốp, lọc gió, nhớt và thói quen tăng ga.`
+      :`Ổn định: ${num(rc)} L/100km gần đây, xấp xỉ mức trung bình ${num(avgC)} L/100km.`;
+  }
+  const k=(a,b)=>`<div class="kpi"><small>${a}</small><b>${b}</b></div>`;
+  return H+`<div class="stats" style="margin-top:0">
+    ${k('Trung bình',num(tk/tl)+' km/lít')}${k('Tiêu hao',num(avgC)+' L/100km')}
+    ${k('Mỗi lần đổ đầy đi được','~'+Math.round(ravg).toLocaleString('vi-VN')+' km')}${k('Chi phí xăng / km',money(ta/tk))}
+    ${k('Lần đổ tiếp theo ở','~'+nextOdo.toLocaleString('vi-VN')+' km')}${k('Còn khoảng',remain>0?'~'+remain.toLocaleString('vi-VN')+' km':'Đã đến lúc đổ')}</div>
+    <p class="sec">${remain>0?'Xe còn đi được khoảng <b>'+remain.toLocaleString('vi-VN')+' km</b> nữa thì nên đổ xăng (đồng hồ ~'+nextOdo.toLocaleString('vi-VN')+' km).'+eta:'Theo thói quen chạy của bạn, xe đã đến lúc đổ xăng.'}</p>
+    <p class="sec">${verdict}</p>
+    <p class="empty" style="margin:6px 0 0;font-size:12px">Dự đoán dựa trên 3 lần đổ đầy gần nhất, chính xác hơn khi có nhiều dữ liệu.</p></div>`;
+}
+
+function renderForm(ed){
+  editId=ed?ed.id:null;
+  if(ed)tab=ed.type;
+  $('#eh').textContent=ed?'Sửa khoản':'Thêm khoản mới';
+  $('#tabs').innerHTML=Object.keys(TYPES).map(k=>`<button type="button" data-tab="${k}" aria-pressed="${k===tab}" ${ed?'disabled':''}>${TYPES[k][0]}</button>`).join('');
+  const v=cur(),x=ed||{};
+  const last=v?Math.max(v.odo||0,...S.entries.filter(e=>e.v===v.id&&e.odo).map(e=>e.odo)):0;
+  const d=`<label>Ngày<input id="f_date" type="date" value="${x.date||today()}" required></label>`;
+  const odo=r=>`<label>Số km trên đồng hồ<input id="f_odo" type="number" min="0" ${r?'required':''} placeholder="${last||0}" value="${x.odo||''}"></label>`;
+  const mny=(id,lab,val,full)=>`<label${full?' class="full"':''}>${lab}<input id="${id}" class="mny" inputmode="numeric" autocomplete="off" required value="${val?Math.round(val).toLocaleString('vi-VN'):''}"></label>`;
+  const note=(ph,req)=>`<label class="full">${req?'Nội dung':'Ghi chú'}<input id="f_note" ${req?'required':''} placeholder="${ph}" value="${esc(x.note)}"></label>`;
+  let h='';
+  if(tab==='fuel')h=d+odo(true)+mny('f_p','Giá mỗi lít (VNĐ)',x.price)+mny('f_amt','Tổng tiền đã trả (VNĐ)',x.amount)
+    +`<label>Số lít (tự tính)<input id="f_l" type="number" step="0.01" min="0" required value="${x.liters||''}"></label>
+    <label class="chk"><input id="f_full" type="checkbox" ${(ed?x.full:true)?'checked':''}> Đổ đầy bình</label>`+note('Ví dụ: A95, cây xăng Petrolimex',false);
+  else if(tab==='service')h=d+odo(false)+note('Thay nhớt, lốp, má phanh…',true)+mny('f_amt','Chi phí (VNĐ)',x.amount,true);
+  else if(tab==='other')h=d+odo(false)+note('Gửi xe, phí cầu đường, bảo hiểm, rửa xe…',true)+mny('f_amt','Số tiền (VNĐ)',x.amount,true);
+  else h=d+odo(false)+note('Chạy xe công nghệ, chở hàng, cho thuê…',true)+mny('f_amt','Số tiền (VNĐ)',x.amount,true);
+  $('#ef').innerHTML=h+`<div class="full row"><button class="pri" type="submit">${ed?'Cập nhật':'Lưu '+TYPES[tab][0].toLowerCase()}</button>${ed?'<button type="button" id="ecancel">Hủy sửa</button>':''}</div>`;
 }
 
 function renderAll(){renderVeh();renderDash();renderForm()}
 
 $('#tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(b){tab=b.dataset.tab;renderForm()}};
+$('#ef').oninput=e=>{
+  const t=e.target;
+  if(t.classList.contains('mny')){const dg=t.value.replace(/\D/g,'');t.value=dg?(+dg).toLocaleString('vi-VN'):''}
+  if(tab!=='fuel')return;
+  if(t.id==='f_p'||t.id==='f_amt'){const p=pn('f_p'),a=pn('f_amt');if(p&&a)$('#f_l').value=Math.round(a/p*100)/100}
+  else if(t.id==='f_l'){const p=pn('f_p'),l=+t.value;if(p&&l)setM('f_amt',l*p)}
+};
+$('#ef').onclick=e=>{if(e.target.id==='ecancel')renderForm()};
+$('#hf').onclick=e=>{const b=e.target.closest('[data-hf]');if(b){hist=b.dataset.hf;renderDash()}};
 $('#ef').onsubmit=e=>{
   e.preventDefault();
   const g=id=>{const el=$('#'+id);return el?el.value:''};
-  const en={id:uid(),v:S.cur,type:tab,date:g('f_date'),odo:+g('f_odo')||0,note:g('f_note').trim(),amount:+g('f_amt'),u:Date.now()};
+  const old=editId?S.entries.find(x=>x.id===editId):null;
+  const en={id:old?old.id:uid(),v:old?old.v:S.cur,type:tab,date:g('f_date'),odo:+g('f_odo')||0,note:g('f_note').trim(),amount:pn('f_amt'),u:Date.now()};
   if(!(en.amount>0))return;
-  if(tab==='fuel'){en.liters=+g('f_l');en.price=+g('f_p');en.full=$('#f_full').checked}
-  S.entries.push(en);
-  const v=cur();if(en.odo>(v.odo||0)){v.odo=en.odo;v.u=Date.now()}
+  if(tab==='fuel'){en.liters=+g('f_l');en.price=pn('f_p');en.full=$('#f_full').checked}
+  if(old)S.entries[S.entries.indexOf(old)]=en;else S.entries.push(en);
+  const v=S.vehicles.find(x=>x.id===en.v);
+  if(v&&en.odo>(v.odo||0)){v.odo=en.odo;v.u=Date.now()}
   save();renderAll();
 };
-$('#list').onclick=e=>{const b=e.target.closest('[data-del]');if(b){S.tomb[b.dataset.del]=Date.now();S.entries=S.entries.filter(x=>x.id!==b.dataset.del);save();renderAll()}};
+$('#list').onclick=e=>{
+  const d=e.target.closest('[data-del]');
+  if(d){S.tomb[d.dataset.del]=Date.now();S.entries=S.entries.filter(x=>x.id!==d.dataset.del);save();renderAll();return}
+  const b=e.target.closest('[data-edit]');
+  if(b){const en=S.entries.find(x=>x.id===b.dataset.edit);if(en){renderForm(en);$('#entry').scrollIntoView({behavior:'smooth'})}}
+};
 $('#veh').onchange=e=>{S.cur=e.target.value;save();armed=false;renderAll()};
 $('#per').onchange=e=>{per=e.target.value;renderDash()};
-$('#addv').onclick=()=>{$('#vform').dataset.open='1';renderVeh();$('#vn').focus()};
-$('#vcancel').onclick=()=>{delete $('#vform').dataset.open;renderVeh()};
+const openV=ed=>{editV=ed;const v=cur();$('#vh').textContent=ed?'Sửa xe':'Thêm xe';$('#vn').value=ed?v.name:'';$('#vp').value=ed?(v.plate||''):'';$('#vo').value=ed?(v.odo||''):'';$('#vform').dataset.open='1';renderVeh();$('#vn').focus()};
+$('#addv').onclick=()=>openV(false);
+$('#editv').onclick=()=>{if(cur())openV(true)};
+$('#vcancel').onclick=()=>{delete $('#vform').dataset.open;editV=false;renderVeh()};
 $('#vf').onsubmit=e=>{
   e.preventDefault();
-  const v={id:uid(),name:$('#vn').value.trim(),plate:$('#vp').value.trim(),odo:+$('#vo').value||0,u:Date.now()};
-  S.vehicles.push(v);S.cur=v.id;save();
-  delete $('#vform').dataset.open;e.target.reset();renderAll();
+  const name=$('#vn').value.trim(),plate=$('#vp').value.trim(),odo=+$('#vo').value||0;
+  if(editV&&cur())Object.assign(cur(),{name,plate,odo,u:Date.now()});
+  else{const v={id:uid(),name,plate,odo,u:Date.now()};S.vehicles.push(v);S.cur=v.id}
+  save();delete $('#vform').dataset.open;editV=false;e.target.reset();renderAll();
 };
 $('#delv').onclick=e=>{
   if(!cur())return;
@@ -320,7 +391,8 @@ const setSync=t=>{$('#sync').textContent=t};
 const byId=(a,b)=>a.id<b.id?-1:a.id>b.id?1:0;
 const dead=it=>S.tomb[it.id]>=(it.u||0);
 let tok=null,tokExp=0,tc=null,pend=null,fileId=null,connected=false,busy2=false;
-const CLIENT_ID='DAN_CLIENT_ID_VAO_DAY.apps.googleusercontent.com';
+const DEF_CID='DAN_CLIENT_ID_VAO_DAY.apps.googleusercontent.com';
+let CLIENT_ID=DEF_CID;try{CLIENT_ID=localStorage.getItem('soxe_cid')||DEF_CID}catch(e){}
 const build=()=>({app:'so-xe',version:1,vehicles:S.vehicles,entries:S.entries,tomb:S.tomb});
 const tokenOk=()=>tok&&Date.now()<tokExp-60000;
 function getToken(){
@@ -398,7 +470,7 @@ function mergeCloud(docs){
   return {ch,back};
 }
 function initSync(){
-  if(CLIENT_ID.indexOf('DAN_')===0){setSync('Chưa cấu hình Google Drive (xem README)');$('#gsign').hidden=true;return}
+  if(CLIENT_ID.indexOf('DAN_')===0){setSync('Cần Client ID để đồng bộ Google Drive');$('#gsign').hidden=true;$('#cidbox').hidden=false;return}
   let n=0;
   const w=setInterval(()=>{
     if(window.google&&google.accounts&&google.accounts.oauth2){clearInterval(w);setup()}
@@ -416,6 +488,9 @@ async function connect(){
   catch(e){setSync('Bấm “Kết nối Google Drive” để đăng nhập')}
 }
 $('#gsign').onclick=connect;
+$('#cidsave').onclick=()=>{const v=$('#cid').value.trim();if(!/\.apps\.googleusercontent\.com$/.test(v)){say('Client ID phải kết thúc bằng .apps.googleusercontent.com');return}try{localStorage.setItem('soxe_cid',v)}catch(e){}location.reload()};
+let regr=0;
+document.addEventListener('pointerdown',()=>{if(connected&&!tokenOk()&&Date.now()-regr>30000){regr=Date.now();getToken().then(syncNow).catch(()=>{})}},true);
 setInterval(()=>{if(connected&&tokenOk()&&!document.hidden)syncNow()},60000);
 document.addEventListener('visibilitychange',()=>{if(connected&&!document.hidden)syncNow().catch(()=>{})});
 if(S.vehicles.length&&!cur())S.cur=S.vehicles[0].id;
