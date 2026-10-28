@@ -62,7 +62,7 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
 <body>
 <main>
   <div class="top">
-    <div><h1>Sổ Xe</h1><small id="sync" class="empty" role="status"></small></div>
+    <div><h1>🚗 Sổ Xe</h1><small id="sync" class="empty" role="status"></small></div>
     <div class="row">
       <select id="veh" aria-label="Chọn xe"></select>
       <select id="per" aria-label="Khoảng thời gian">
@@ -75,13 +75,13 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
   </div>
 
   <div id="vform" class="card" hidden>
-    <h2 id="vh">Thêm xe</h2>
+    <h2 id="vh">🚗 Thêm xe</h2>
     <form id="vf">
       <label class="full">Tên xe<input id="vn" required placeholder="Ví dụ: Honda Vision, Vios 2020"></label>
       <label>Biển số<input id="vp" placeholder="51F-123.45"></label>
       <label>Số km hiện tại<input id="vo" type="number" min="0" placeholder="0"></label>
-      <label>Dung tích bình xăng (lít)<input id="vt" type="number" step="0.1" min="0" placeholder="Ví dụ 5.5"></label>
-      <label>Tiêu hao công bố (L/100km)<input id="vc" type="number" step="0.01" min="0" placeholder="Ví dụ 1.9"></label>
+      <label>🛢️ Dung tích bình xăng (lít)<input id="vt" type="number" step="0.1" min="0" placeholder="Ví dụ 5.5"></label>
+      <label>⛽ Tiêu hao công bố (L/100km)<input id="vc" type="number" step="0.01" min="0" placeholder="Ví dụ 1.9"></label>
       <div class="full row"><button class="pri" type="submit">Lưu xe</button><button type="button" id="vcancel">Hủy</button></div>
     </form>
   </div>
@@ -89,25 +89,26 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
   <div id="dash"></div>
 
   <div class="card" id="entry">
-    <h2 id="eh">Thêm khoản mới</h2>
+    <h2 id="eh">➕ Thêm khoản mới</h2>
     <div class="tabs" id="tabs"></div>
     <div id="gauge"></div>
     <form id="ef"></form>
+    <div id="parts"></div>
   </div>
 
-  <div class="card"><h2>Lịch sử</h2><div class="tabs" id="hf"></div><div id="list"></div></div>
+  <div class="card"><h2>🕘 Lịch sử</h2><div class="tabs" id="hf"></div><div id="list"></div></div>
 
   <div class="card">
-    <h2>Quản lý dữ liệu</h2>
+    <h2>☁️ Quản lý dữ liệu</h2>
     <div class="row" style="margin-bottom:8px">
-      <button id="addv">Thêm xe khác</button>
-      <button id="editv">Sửa xe này</button>
-      <button id="delv">Xóa xe này</button>
-      <button id="exp">Tải file sao lưu (.json)</button>
-      <button id="cp">Sao chép bản sao lưu</button>
-      <button id="gsign" class="pri">Kết nối Google Drive</button>
-      <button id="csv">Xuất Excel (.csv)</button>
-      <button id="imp">Mở file sao lưu…</button>
+      <button id="addv">🚗 Thêm xe khác</button>
+      <button id="editv">✏️ Sửa xe này</button>
+      <button id="delv">🗑️ Xóa xe này</button>
+      <button id="exp">💾 Tải file sao lưu (.json)</button>
+      <button id="cp">📋 Sao chép bản sao lưu</button>
+      <button id="gsign" class="pri">☁️ Kết nối Google Drive</button>
+      <button id="csv">📊 Xuất Excel (.csv)</button>
+      <button id="imp">📂 Mở file sao lưu…</button>
       <input id="file" type="file" accept=".json,application/json" hidden>
     </div>
     <p id="msg" class="empty" role="status" style="margin:6px 0 0">Dữ liệu được lưu trong trình duyệt trên thiết bị này. Hãy tải file sao lưu định kỳ để chuyển sang máy khác hoặc phòng khi mất dữ liệu.</p>
@@ -123,13 +124,13 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
 const $=s=>document.querySelector(s);
 let S={vehicles:[],entries:[],cur:null};
 try{const r=localStorage.getItem('soxe_v1');if(r){const p=JSON.parse(r);if(p&&p.vehicles&&p.entries)S=p}}catch(e){}
-S.tomb=S.tomb||{};
+S.tomb=S.tomb||{};S.parts=S.parts||[];
 const save=()=>{try{localStorage.setItem('soxe_v1',JSON.stringify(S))}catch(e){}schedulePush()};
 const uid=()=>Math.random().toString(36).slice(2,10);
 const money=n=>Math.round(n).toLocaleString('vi-VN')+'VNĐ';
 const num=n=>Math.round(n*10)/10;
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const TYPES={fuel:['Đổ xăng','--fuel'],service:['Bảo dưỡng','--svc'],other:['Chi phí khác','--oth'],income:['Thu nhập','--in']};
+const TYPES={fuel:['Đổ xăng','--fuel','⛽'],service:['Bảo dưỡng','--svc','🔧'],other:['Chi phí khác','--oth','🧾'],income:['Thu nhập','--in','💰']};
 let tab='fuel',per='month',armed=false,hist='all',editId=null,editV=false;
 const sm=(a,f)=>a.reduce((t,x)=>t+f(x),0);
 const pn=id=>+((($('#'+id)||{}).value||'').replace(/\D/g,''))||0;
@@ -173,55 +174,65 @@ function stats(){
     cat:{fuel:sum(out.filter(e=>e.type==='fuel')),service:sum(out.filter(e=>e.type==='service')),other:sum(out.filter(e=>e.type==='other'))}};
 }
 
+let cm='6m',cmo=today().slice(0,7),cy=today().slice(0,4);
 function chart(){
-  const now=new Date(),ms=[];
-  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);ms.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'))}
-  const data=ms.map(m=>{
-    const es=S.entries.filter(e=>e.v===S.cur&&e.date.slice(0,7)===m);
-    return {m,i:es.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0),o:es.filter(e=>e.type!=='income').reduce((s,e)=>s+e.amount,0)};
-  });
-  const mx=Math.max(1,...data.flatMap(d=>[d.i,d.o]));
-  const W=360,H=140,bw=16,gap=(W-ms.length*bw*2)/(ms.length+1);
+  const now=new Date(),b=[];let key=7;
+  if(cm==='year'){for(let m=1;m<=12;m++)b.push({k:cy+'-'+String(m).padStart(2,'0'),l:'T'+m})}
+  else if(cm==='month'){key=10;const [y,m]=cmo.split('-').map(Number),n=new Date(y,m,0).getDate();for(let d=1;d<=n;d++)b.push({k:cmo+'-'+String(d).padStart(2,'0'),l:String(d)})}
+  else{for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);b.push({k:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),l:'T'+(d.getMonth()+1)})}}
+  const es=S.entries.filter(e=>e.v===S.cur);
+  const data=b.map(x=>{const f=es.filter(e=>e.date.slice(0,key)===x.k);return {l:x.l,i:sm(f.filter(e=>e.type==='income'),e=>e.amount),o:sm(f.filter(e=>e.type!=='income'),e=>e.amount)}});
+  const mx=Math.max(1,...data.flatMap(d=>[d.i,d.o])),W=360,H=150,sl=W/data.length,bw=Math.max(2,Math.min(16,sl*.38));
   let g='';
   data.forEach((d,k)=>{
-    const x=gap+k*(bw*2+gap),hi=d.i/mx*100,ho=d.o/mx*100;
-    g+=`<rect x="${x}" y="${H-20-hi}" width="${bw}" height="${hi}" rx="2" style="fill:var(--in)"/>`;
-    g+=`<rect x="${x+bw}" y="${H-20-ho}" width="${bw}" height="${ho}" rx="2" style="fill:var(--out)"/>`;
-    g+=`<text x="${x+bw}" y="${H-6}" text-anchor="middle">T${d.m.slice(5)}</text>`;
+    const x=k*sl+sl/2-bw,hi=d.i/mx*105,ho=d.o/mx*105;
+    g+=`<rect x="${x}" y="${H-24-hi}" width="${bw}" height="${hi}" rx="1.5" style="fill:var(--in)"/><rect x="${x+bw}" y="${H-24-ho}" width="${bw}" height="${ho}" rx="1.5" style="fill:var(--out)"/>`;
+    if(cm!=='month'||k%5===0||k===data.length-1)g+=`<text x="${x+bw}" y="${H-8}" text-anchor="middle">${d.l}</text>`;
   });
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Thu và chi 6 tháng gần nhất">${g}</svg>
-  <div class="leg"><span><i class="dot" style="background:var(--in)"></i>Thu</span><span><i class="dot" style="background:var(--out)"></i>Chi</span><span style="color:var(--mut)">6 tháng gần nhất</span></div>`;
+  const ti=sm(data,d=>d.i),to=sm(data,d=>d.o),net=ti-to;
+  const years=Array.from(new Set(S.entries.map(e=>e.date.slice(0,4)).concat([today().slice(0,4),cy]))).sort().reverse();
+  const sel=(a,c)=>a===c?' selected':'';
+  const ctl=`<div class="row" style="margin-bottom:8px"><select id="cmode" aria-label="Kiểu xem">
+    <option value="6m"${sel(cm,'6m')}>6 tháng gần nhất</option><option value="month"${sel(cm,'month')}>Theo tháng</option><option value="year"${sel(cm,'year')}>Theo năm</option></select>
+    ${cm==='month'?`<input id="cmo" type="month" value="${cmo}" aria-label="Chọn tháng">`:''}
+    ${cm==='year'?`<select id="cyr" aria-label="Chọn năm">${years.map(y=>`<option value="${y}"${sel(y,cy)}>${y}</option>`).join('')}</select>`:''}</div>`;
+  const ttl=cm==='6m'?'6 tháng gần nhất':cm==='year'?'năm '+cy:'tháng '+cmo.split('-').reverse().join('/');
+  return ctl+`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Biểu đồ thu và chi ${ttl}">${g}</svg>
+  <div class="leg"><span><i class="dot" style="background:var(--in)"></i>💰 Thu <b>${money(ti)}</b></span><span><i class="dot" style="background:var(--out)"></i>💸 Chi <b>${money(to)}</b></span><span>${net>=0?'📈 Lãi':'📉 Lỗ'} <b class="${net>=0?'in':'out'}">${money(Math.abs(net))}</b></span></div>`;
 }
 
 function renderDash(){
   const v=cur();
   if(!v){$('#dash').innerHTML='<div class="card empty">Thêm chiếc xe đầu tiên để bắt đầu ghi chi phí.</div>';$('#list').innerHTML='';return}
   const s=stats(),net=s.inc-s.tot;
+  const due=S.parts.filter(p=>p.v===S.cur).map(p=>({p,i:partInfo(p)})).filter(x=>x.i.pct!=null&&x.i.pct<=20);
+  const alerts=due.length?`<div class="card" style="border-color:var(--out)"><h2>🔔 Sắp đến hạn thay</h2>${due.map(x=>`<div>${pIcon(x.p.name)} <b>${esc(x.p.name)}</b>: ${x.i.pct<=0?'đã quá hạn':'còn ~'+Math.round(x.i.pct)+'%'}${x.i.dueOdo!=null?' (mốc '+x.i.dueOdo.toLocaleString('vi-VN')+' km)':''}</div>`).join('')}</div>`:'';
   const cats=['fuel','service','other'];
   const bar=s.tot>0?cats.map(c=>`<span style="width:${s.cat[c]/s.tot*100}%;background:var(${TYPES[c][1]})"></span>`).join(''):'';
-  const leg=cats.map(c=>`<span><i class="dot" style="background:var(${TYPES[c][1]})"></i>${TYPES[c][0]}: <b>${money(s.cat[c])}</b>${s.tot?' ('+Math.round(s.cat[c]/s.tot*100)+'%)':''}</span>`).join('');
+  const leg=cats.map(c=>`<span><i class="dot" style="background:var(${TYPES[c][1]})"></i>${TYPES[c][2]} ${TYPES[c][0]}: <b>${money(s.cat[c])}</b>${s.tot?' ('+Math.round(s.cat[c]/s.tot*100)+'%)':''}</span>`).join('');
   $('#dash').innerHTML=`
   <div class="card">
     <div class="kpis">
-      <div class="kpi"><small>Tổng chi</small><b class="out">${money(s.tot)}</b></div>
-      <div class="kpi"><small>Tổng thu</small><b class="in">${money(s.inc)}</b></div>
-      <div class="kpi"><small>${net>=0?'Lãi':'Lỗ'}</small><b class="${net>=0?'in':'out'}">${money(Math.abs(net))}</b></div>
+      <div class="kpi"><small>💸 Tổng chi</small><b class="out">${money(s.tot)}</b></div>
+      <div class="kpi"><small>💰 Tổng thu</small><b class="in">${money(s.inc)}</b></div>
+      <div class="kpi"><small>${net>=0?'📈 Lãi':'📉 Lỗ'}</small><b class="${net>=0?'in':'out'}">${money(Math.abs(net))}</b></div>
     </div>
     <div class="stats">
-      <div class="kpi"><small>Quãng đường</small><b>${s.km?s.km.toLocaleString('vi-VN')+' km':'–'}</b></div>
-      <div class="kpi"><small>Chi phí / km</small><b>${s.km?money(s.tot/s.km):'–'}</b></div>
-      <div class="kpi"><small>Tiêu hao</small><b>${s.cons?num(s.cons)+' L/100km':'–'}</b></div>
-      <div class="kpi"><small>Giá xăng gần nhất</small><b>${(()=>{const f=S.entries.filter(e=>e.v===S.cur&&e.type==='fuel'&&e.price).sort((a,b)=>b.date.localeCompare(a.date))[0];return f?money(f.price)+'/L':'–'})()}</b></div>
+      <div class="kpi"><small>🛣️ Quãng đường</small><b>${s.km?s.km.toLocaleString('vi-VN')+' km':'–'}</b></div>
+      <div class="kpi"><small>🧮 Chi phí / km</small><b>${s.km?money(s.tot/s.km):'–'}</b></div>
+      <div class="kpi"><small>⛽ Tiêu hao</small><b>${s.cons?num(s.cons)+' L/100km':'–'}</b></div>
+      <div class="kpi"><small>🏷️ Giá xăng gần nhất</small><b>${(()=>{const f=S.entries.filter(e=>e.v===S.cur&&e.type==='fuel'&&e.price).sort((a,b)=>b.date.localeCompare(a.date))[0];return f?money(f.price)+'/L':'–'})()}</b></div>
     </div>
   </div>
-  <div class="card"><h2>Chi phí theo loại</h2>
+  ${alerts}
+  <div class="card"><h2>📊 Chi phí theo loại</h2>
     <div class="bar">${bar}</div><div class="leg">${leg}</div>
     ${s.tot?'':'<p class="empty" style="margin:8px 0 0">Chưa có khoản chi trong khoảng thời gian này.</p>'}
   </div>
   ${report()}
-  <div class="card"><h2>Thu chi theo tháng</h2>${chart()}</div>`;
+  <div class="card"><h2>📊 Thu chi</h2>${chart()}</div>`;
   const hf=['all'].concat(Object.keys(TYPES));
-  $('#hf').innerHTML=hf.map(k=>`<button type="button" data-hf="${k}" aria-pressed="${k===hist}">${k==='all'?'Tất cả':TYPES[k][0]}</button>`).join('');
+  $('#hf').innerHTML=hf.map(k=>`<button type="button" data-hf="${k}" aria-pressed="${k===hist}">${k==='all'?'📋 Tất cả':TYPES[k][2]+' '+TYPES[k][0]}</button>`).join('');
   const items=s.per_.filter(e=>hist==='all'||e.type===hist).sort((a,b)=>b.date.localeCompare(a.date)||b.odo-a.odo);
   const LV=levels(S.cur);
   const head=hist==='all'||!items.length?'':`<p class="empty" style="margin:0 0 4px">${items.length} khoản · Tổng ${money(sm(items,e=>e.amount))}</p>`;
@@ -229,12 +240,83 @@ function renderDash(){
     const T=TYPES[e.type],isIn=e.type==='income';
     const sub=[e.date.split('-').reverse().join('/'),e.odo?e.odo.toLocaleString('vi-VN')+' km':'',e.type==='fuel'&&e.liters?num(e.liters)+' L'+(e.price?' · '+money(e.price)+'/L':'')+(e.full?' · đầy bình':'')+(LV.tank&&LV.m&&LV.m[e.id]&&LV.m[e.id].after!==null?' · sau đổ ~'+Math.round(LV.m[e.id].after/LV.tank*100)+'%':''):''].filter(Boolean).join(' · ');
     return `<div class="item"><span class="tag" style="background:var(${T[1]})"></span>
-      <div class="t"><b>${esc(e.note||T[0])}</b><small>${T[0]} · ${sub}</small></div>
+      <div class="t"><b>${T[2]} ${esc(e.note||T[0])}</b><small>${T[0]} · ${sub}</small></div>
       <span class="amt ${isIn?'in':'out'}">${isIn?'+':'−'}${money(e.amount)}</span>
       <button class="lnk" data-edit="${e.id}" aria-label="Sửa khoản này">Sửa</button>
       <button class="lnk" data-del="${e.id}" aria-label="Xóa khoản này">Xóa</button></div>`}).join(''):'<div class="empty">Chưa có khoản nào trong khoảng thời gian và loại này.</div>';
-  renderGauge();
+  renderGauge();renderParts();
 }
+
+function curOdoOf(vid){const v=S.vehicles.find(x=>x.id===vid)||{};return Math.max(v.odo||0,...S.entries.filter(e=>e.v===vid&&e.odo).map(e=>e.odo))}
+function pIcon(n){n=(n||'').toLowerCase();return /nhớt|dầu|nhot/.test(n)?'🛢️':/bugi/.test(n)?'⚡':/lọc gió/.test(n)?'🌬️':/lọc/.test(n)?'🧴':/lốp|vỏ/.test(n)?'🛞':/phanh|thắng/.test(n)?'🛑':/ắc quy|bình điện|pin/.test(n)?'🔋':/nước|làm mát/.test(n)?'💧':/dây|xích|sên|curoa/.test(n)?'⛓️':'🔧'}
+function partInfo(p){
+  const odo=curOdoOf(p.v),base=p.pct==null?100:p.pct;
+  let pctK=null,pctM=null,dueOdo=null,remK=null,dueDate=null;
+  if(p.km>0){pctK=base-Math.max(0,odo-(p.odo||0))/p.km*100;dueOdo=Math.round((p.odo||0)+base/100*p.km);remK=dueOdo-odo}
+  if(p.mo>0&&p.date){const t0=new Date(p.date).getTime();pctM=base-(Date.now()-t0)/(30.4375*864e5)/p.mo*100;dueDate=new Date(t0+base/100*p.mo*30.4375*864e5)}
+  const a=[pctK,pctM].filter(x=>x!=null);
+  return {pct:a.length?Math.min(...a):null,dueOdo,remK,dueDate};
+}
+function partSel(x){
+  const ps=S.parts.filter(p=>p.v===S.cur);
+  if(!ps.length)return '';
+  return `<label class="full">🔩 Linh kiện đã thay (tùy chọn, tự đặt lại hạn thay)<select id="f_part"><option value="">Không chọn</option>${ps.map(p=>`<option value="${p.id}"${x.part===p.id?' selected':''}>${esc(p.name)}</option>`).join('')}</select></label>`;
+}
+let pOpen=false,pEditId=null;
+function renderParts(){
+  const el=$('#parts'),v=cur();
+  if(!el)return;
+  if(tab!=='service'||!v){el.innerHTML='';return}
+  const rows=S.parts.filter(p=>p.v===v.id).map(p=>{
+    const i=partInfo(p),pc=i.pct==null?null:Math.max(0,Math.min(100,i.pct));
+    const c=pc==null?'--line':pc<=15?'--out':pc<=30?'--fuel':'--in';
+    const when=[i.dueOdo!=null?(i.remK>0?'thay ở ~'+i.dueOdo.toLocaleString('vi-VN')+' km (còn ~'+i.remK.toLocaleString('vi-VN')+' km)':'đã quá hạn '+(-i.remK).toLocaleString('vi-VN')+' km'):'',i.dueDate?'hạn '+i.dueDate.toLocaleDateString('vi-VN'):''].filter(Boolean).join(' · ');
+    return `<div class="item" style="align-items:flex-start"><div class="t"><b>${pIcon(p.name)} ${esc(p.name)}</b><small>${when||'Chưa đặt chu kỳ'}</small>
+      ${pc==null?'':`<div class="bar" style="height:10px;margin:6px 0 0"><span style="width:${pc}%;background:var(${c})"></span></div>`}</div>
+      <b style="min-width:44px;text-align:right">${pc==null?'–':Math.round(pc)+'%'}</b>
+      <div style="display:flex;flex-direction:column"><button class="lnk" data-prep="${p.id}">✅ Đã thay</button><button class="lnk" data-pedit="${p.id}">Sửa</button><button class="lnk" data-pdel="${p.id}">Xóa</button></div></div>`}).join('');
+  const q=pEditId?(S.parts.find(x=>x.id===pEditId)||{}):{};
+  const names=['Nhớt máy','Bugi','Lọc gió động cơ','Lọc gió điều hòa','Lọc nhớt','Lọc xăng','Má phanh','Dầu phanh','Dây curoa','Nước làm mát','Lốp trước','Lốp sau','Ắc quy'];
+  const form=pOpen?`<form id="pf" style="margin-top:10px">
+    <label class="full">Tên linh kiện<input id="p_name" list="pnames" required value="${esc(q.name)}" placeholder="Nhớt, bugi, lọc gió…"></label>
+    <datalist id="pnames">${names.map(n=>`<option value="${n}">`).join('')}</datalist>
+    <label>📏 Chu kỳ thay (km)<input id="p_km" type="number" min="0" value="${q.km||''}" placeholder="Ví dụ 2000"></label>
+    <label>📅 Chu kỳ thay (tháng, nếu có)<input id="p_mo" type="number" min="0" value="${q.mo||''}" placeholder="Ví dụ 6"></label>
+    <label>🛣️ Tại km<input id="p_odo" type="number" min="0" value="${q.odo!=null?q.odo:''}" placeholder="Bỏ trống = km hiện tại"></label>
+    <label>📅 Vào ngày<input id="p_date" type="date" value="${q.date||today()}"></label>
+    <label class="full">% còn lại tại thời điểm trên (100 = mới thay, nhập số bạn kiểm tra thực tế)<input id="p_pct" type="number" min="0" max="100" value="${q.pct!=null?q.pct:100}"></label>
+    <div class="full row"><button class="pri" type="submit">Lưu linh kiện</button><button type="button" id="pcancel">Hủy</button></div></form>`:'<button type="button" id="padd">➕ Thêm linh kiện</button>';
+  el.innerHTML=`<div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px"><h2>🔩 Linh kiện và hạn thay</h2>${rows||'<p class="empty" style="margin:0 0 8px">Chưa có linh kiện nào. Thêm nhớt, bugi, lọc gió… để theo dõi % còn lại và mốc km cần thay.</p>'}${form}</div>`;
+}
+$('#parts').onclick=e=>{
+  const t=e.target;
+  if(t.id==='padd'){pOpen=true;pEditId=null;renderParts();return}
+  if(t.id==='pcancel'){pOpen=false;pEditId=null;renderParts();return}
+  const r=t.closest('[data-prep]');
+  if(r){const p=S.parts.find(x=>x.id===r.dataset.prep);if(p){p.odo=curOdoOf(p.v);p.date=today();p.pct=100;p.u=Date.now();save();renderDash()}return}
+  const ed=t.closest('[data-pedit]');
+  if(ed){pOpen=true;pEditId=ed.dataset.pedit;renderParts();return}
+  const dl=t.closest('[data-pdel]');
+  if(dl){const id=dl.dataset.pdel;S.tomb[id]=Date.now();S.parts=S.parts.filter(x=>x.id!==id);save();renderDash()}
+};
+$('#parts').onsubmit=e=>{
+  e.preventDefault();
+  const g=id=>$('#'+id).value;
+  const name=g('p_name').trim(),km=+g('p_km')||0,mo=+g('p_mo')||0;
+  if(!name||(!km&&!mo))return;
+  const pct=Math.max(0,Math.min(100,g('p_pct')===''?100:+g('p_pct')));
+  const odo=g('p_odo')===''?curOdoOf(S.cur):+g('p_odo'),date=g('p_date')||today();
+  const old=pEditId?S.parts.find(x=>x.id===pEditId):null;
+  const np={id:old?old.id:uid(),v:old?old.v:S.cur,name,km,mo,odo,date,pct,u:Date.now()};
+  if(old)S.parts[S.parts.indexOf(old)]=np;else S.parts.push(np);
+  pOpen=false;pEditId=null;save();renderDash();
+};
+$('#dash').onchange=e=>{
+  const t=e.target;
+  if(t.id==='cmode'){cm=t.value;renderDash()}
+  else if(t.id==='cmo'&&t.value){cmo=t.value;renderDash()}
+  else if(t.id==='cyr'){cy=t.value;renderDash()}
+};
 
 function measured(fl){
   const fulls=fl.filter(e=>e.full);let km=0,lit=0,n=0;
@@ -276,12 +358,12 @@ function renderGauge(){
   const curOdo=Math.max(v.odo||0,...S.entries.filter(e=>e.v===v.id&&e.odo).map(e=>e.odo));
   let h='';
   const now=L.lv==null?null:(curOdo===L.po?L.lv:L.r?Math.max(0,L.lv-(curOdo-L.po)*L.r/100):null);
-  h+=now==null?'<p class="empty" style="margin:0 0 8px">Chưa đủ dữ liệu để ước tính xăng còn lại. Hãy ghi một lần đổ đầy bình (kèm số km).</p>':gbar(now,L.tank,'Xăng còn lại hiện tại (ước tính)');
+  h+=now==null?'<p class="empty" style="margin:0 0 8px">Chưa đủ dữ liệu để ước tính xăng còn lại. Hãy ghi một lần đổ đầy bình (kèm số km).</p>':gbar(now,L.tank,'🛢️ Xăng còn lại hiện tại (ước tính)');
   const odo=+g('f_odo')||0,lit=+g('f_l')||0,full=!!($('#f_full')||{}).checked;
   if(odo>0&&(lit>0||full)){
     const x=levels(v.id,{id:'cand',v:v.id,type:'fuel',date:g('f_date')||today(),odo,liters:lit,full},editId);
     const a=x.m&&x.m.cand?x.m.cand.after:null;
-    h+=a==null?'':gbar(a,x.tank,'Sau khi đổ lần này');
+    h+=a==null?'':gbar(a,x.tank,'⛽ Sau khi đổ lần này');
   }
   el.innerHTML=h;
 }
@@ -290,7 +372,7 @@ function report(){
   const v=cur();
   const fl=S.entries.filter(e=>e.v===S.cur&&e.type==='fuel'&&e.odo).sort((a,b)=>a.odo-b.odo);
   const fulls=fl.filter(e=>e.full);
-  const H='<div class="card"><h2>Báo cáo nhiên liệu</h2>';
+  const H='<div class="card"><h2>⛽ Báo cáo nhiên liệu</h2>';
   if(fulls.length<2)return H+`<p class="empty" style="margin:0">Cần ít nhất 2 lần đổ đầy bình (có số km) để tính mức tiêu hao và dự đoán lần đổ tiếp theo. Hiện có ${fulls.length} lần.</p></div>`;
   const ints=[];
   for(let i=1;i<fulls.length;i++){
@@ -322,9 +404,9 @@ function report(){
   if(+v.tank)off+=`<p class="sec">Mỗi bình đầy (${num(+v.tank)} L) đi được khoảng <b>${Math.round(v.tank/avgC*100).toLocaleString('vi-VN')} km</b> theo mức tiêu hao thực tế.</p>`;
   const k=(a,b)=>`<div class="kpi"><small>${a}</small><b>${b}</b></div>`;
   return H+`<div class="stats" style="margin-top:0">
-    ${k('Trung bình',num(tk/tl)+' km/lít')}${k('Tiêu hao',num(avgC)+' L/100km')}
-    ${k('Mỗi lần đổ đầy đi được','~'+Math.round(ravg).toLocaleString('vi-VN')+' km')}${k('Chi phí xăng / km',money(ta/tk))}
-    ${k('Lần đổ tiếp theo ở','~'+nextOdo.toLocaleString('vi-VN')+' km')}${k('Còn khoảng',remain>0?'~'+remain.toLocaleString('vi-VN')+' km':'Đã đến lúc đổ')}</div>
+    ${k('🛣️ Trung bình',num(tk/tl)+' km/lít')}${k('⛽ Tiêu hao',num(avgC)+' L/100km')}
+    ${k('🛢️ Mỗi lần đổ đầy đi được','~'+Math.round(ravg).toLocaleString('vi-VN')+' km')}${k('💵 Chi phí xăng / km',money(ta/tk))}
+    ${k('📍 Lần đổ tiếp theo ở','~'+nextOdo.toLocaleString('vi-VN')+' km')}${k('⏳ Còn khoảng',remain>0?'~'+remain.toLocaleString('vi-VN')+' km':'Đã đến lúc đổ')}</div>
     <p class="sec">${remain>0?'Xe còn đi được khoảng <b>'+remain.toLocaleString('vi-VN')+' km</b> nữa thì nên đổ xăng (đồng hồ ~'+nextOdo.toLocaleString('vi-VN')+' km).'+eta:'Theo thói quen chạy của bạn, xe đã đến lúc đổ xăng.'}</p>
     <p class="sec">${verdict}</p>${off}
     <p class="empty" style="margin:6px 0 0;font-size:12px">Dự đoán dựa trên 3 lần đổ đầy gần nhất, chính xác hơn khi có nhiều dữ liệu.</p></div>`;
@@ -333,23 +415,23 @@ function report(){
 function renderForm(ed){
   editId=ed?ed.id:null;
   if(ed)tab=ed.type;
-  $('#eh').textContent=ed?'Sửa khoản':'Thêm khoản mới';
-  $('#tabs').innerHTML=Object.keys(TYPES).map(k=>`<button type="button" data-tab="${k}" aria-pressed="${k===tab}" ${ed?'disabled':''}>${TYPES[k][0]}</button>`).join('');
+  $('#eh').textContent=ed?'✏️ Sửa khoản':'➕ Thêm khoản mới';
+  $('#tabs').innerHTML=Object.keys(TYPES).map(k=>`<button type="button" data-tab="${k}" aria-pressed="${k===tab}" ${ed?'disabled':''}>${TYPES[k][2]} ${TYPES[k][0]}</button>`).join('');
   const v=cur(),x=ed||{};
   const last=v?Math.max(v.odo||0,...S.entries.filter(e=>e.v===v.id&&e.odo).map(e=>e.odo)):0;
-  const d=`<label>Ngày<input id="f_date" type="date" value="${x.date||today()}" required></label>`;
-  const odo=r=>`<label>Số km trên đồng hồ<input id="f_odo" type="number" min="0" ${r?'required':''} placeholder="${last||0}" value="${x.odo||''}"></label>`;
+  const d=`<label>📅 Ngày<input id="f_date" type="date" value="${x.date||today()}" required></label>`;
+  const odo=r=>`<label>🛣️ Số km trên đồng hồ<input id="f_odo" type="number" min="0" ${r?'required':''} placeholder="${last||0}" value="${x.odo||''}"></label>`;
   const mny=(id,lab,val,full)=>`<label${full?' class="full"':''}>${lab}<input id="${id}" class="mny" inputmode="numeric" autocomplete="off" required value="${val?Math.round(val).toLocaleString('vi-VN'):''}"></label>`;
   const note=(ph,req)=>`<label class="full">${req?'Nội dung':'Ghi chú'}<input id="f_note" ${req?'required':''} placeholder="${ph}" value="${esc(x.note)}"></label>`;
   let h='';
-  if(tab==='fuel')h=d+odo(true)+mny('f_p','Giá mỗi lít (VNĐ)',x.price)+mny('f_amt','Tổng tiền đã trả (VNĐ)',x.amount)
-    +`<label>Số lít (tự tính)<input id="f_l" type="number" step="0.01" min="0" required value="${x.liters||''}"></label>
-    <label class="chk"><input id="f_full" type="checkbox" ${(ed?x.full:true)?'checked':''}> Đổ đầy bình</label>`+note('Ví dụ: A95, cây xăng Petrolimex',false);
-  else if(tab==='service')h=d+odo(false)+note('Thay nhớt, lốp, má phanh…',true)+mny('f_amt','Chi phí (VNĐ)',x.amount,true);
-  else if(tab==='other')h=d+odo(false)+note('Gửi xe, phí cầu đường, bảo hiểm, rửa xe…',true)+mny('f_amt','Số tiền (VNĐ)',x.amount,true);
-  else h=d+odo(false)+note('Chạy xe công nghệ, chở hàng, cho thuê…',true)+mny('f_amt','Số tiền (VNĐ)',x.amount,true);
+  if(tab==='fuel')h=d+odo(true)+mny('f_p','🏷️ Giá mỗi lít (VNĐ)',x.price)+mny('f_amt','💵 Tổng tiền đã trả (VNĐ)',x.amount)
+    +`<label>🛢️ Số lít (tự tính)<input id="f_l" type="number" step="0.01" min="0" required value="${x.liters||''}"></label>
+    <label class="chk"><input id="f_full" type="checkbox" ${(ed?x.full:true)?'checked':''}> ⛽ Đổ đầy bình</label>`+note('Ví dụ: A95, cây xăng Petrolimex',false);
+  else if(tab==='service')h=d+odo(false)+note('Thay nhớt, lốp, má phanh…',true)+partSel(x)+mny('f_amt','💵 Chi phí (VNĐ)',x.amount,true);
+  else if(tab==='other')h=d+odo(false)+note('Gửi xe, phí cầu đường, bảo hiểm, rửa xe…',true)+mny('f_amt','💵 Số tiền (VNĐ)',x.amount,true);
+  else h=d+odo(false)+note('Chạy xe công nghệ, chở hàng, cho thuê…',true)+mny('f_amt','💵 Số tiền (VNĐ)',x.amount,true);
   $('#ef').innerHTML=h+`<div class="full row"><button class="pri" type="submit">${ed?'Cập nhật':'Lưu '+TYPES[tab][0].toLowerCase()}</button>${ed?'<button type="button" id="ecancel">Hủy sửa</button>':''}</div>`;
-  renderGauge();
+  renderGauge();renderParts();
 }
 
 function renderAll(){renderVeh();renderDash();renderForm()}
@@ -372,9 +454,11 @@ $('#ef').onsubmit=e=>{
   const en={id:old?old.id:uid(),v:old?old.v:S.cur,type:tab,date:g('f_date'),odo:+g('f_odo')||0,note:g('f_note').trim(),amount:pn('f_amt'),u:Date.now()};
   if(!(en.amount>0))return;
   if(tab==='fuel'){en.liters=+g('f_l');en.price=pn('f_p');en.full=$('#f_full').checked}
+  if(tab==='service')en.part=g('f_part')||'';
   if(old)S.entries[S.entries.indexOf(old)]=en;else S.entries.push(en);
   const v=S.vehicles.find(x=>x.id===en.v);
   if(v&&en.odo>(v.odo||0)){v.odo=en.odo;v.u=Date.now()}
+  if(en.part){const pt=S.parts.find(x=>x.id===en.part);if(pt&&(!old||old.part!==en.part)){pt.odo=en.odo||curOdoOf(en.v);pt.date=en.date;pt.pct=100;pt.u=Date.now()}}
   save();renderAll();
 };
 $('#list').onclick=e=>{
@@ -385,7 +469,7 @@ $('#list').onclick=e=>{
 };
 $('#veh').onchange=e=>{S.cur=e.target.value;save();armed=false;renderAll()};
 $('#per').onchange=e=>{per=e.target.value;renderDash()};
-const openV=ed=>{editV=ed;const v=cur();$('#vh').textContent=ed?'Sửa xe':'Thêm xe';$('#vn').value=ed?v.name:'';$('#vp').value=ed?(v.plate||''):'';$('#vo').value=ed?(v.odo||''):'';$('#vt').value=ed?(v.tank||''):'';$('#vc').value=ed?(v.cons||''):'';$('#vform').dataset.open='1';renderVeh();$('#vn').focus()};
+const openV=ed=>{editV=ed;const v=cur();$('#vh').textContent=ed?'✏️ Sửa xe':'🚗 Thêm xe';$('#vn').value=ed?v.name:'';$('#vp').value=ed?(v.plate||''):'';$('#vo').value=ed?(v.odo||''):'';$('#vt').value=ed?(v.tank||''):'';$('#vc').value=ed?(v.cons||''):'';$('#vform').dataset.open='1';renderVeh();$('#vn').focus()};
 $('#addv').onclick=()=>openV(false);
 $('#editv').onclick=()=>{if(cur())openV(true)};
 $('#vcancel').onclick=()=>{delete $('#vform').dataset.open;editV=false;renderVeh()};
@@ -399,8 +483,8 @@ $('#vf').onsubmit=e=>{
 $('#delv').onclick=e=>{
   if(!cur())return;
   if(!armed){armed=true;e.target.textContent='Bấm lần nữa để xóa xe và toàn bộ dữ liệu';return}
-  const tt=Date.now();S.tomb[S.cur]=tt;S.entries.filter(x=>x.v===S.cur).forEach(x=>{S.tomb[x.id]=tt});S.entries=S.entries.filter(x=>x.v!==S.cur);S.vehicles=S.vehicles.filter(x=>x.id!==S.cur);
-  S.cur=S.vehicles[0]?S.vehicles[0].id:null;armed=false;e.target.textContent='Xóa xe này';save();renderAll();
+  const tt=Date.now();S.tomb[S.cur]=tt;S.parts.filter(x=>x.v===S.cur).forEach(x=>{S.tomb[x.id]=tt});S.parts=S.parts.filter(x=>x.v!==S.cur);S.entries.filter(x=>x.v===S.cur).forEach(x=>{S.tomb[x.id]=tt});S.entries=S.entries.filter(x=>x.v!==S.cur);S.vehicles=S.vehicles.filter(x=>x.id!==S.cur);
+  S.cur=S.vehicles[0]?S.vehicles[0].id:null;armed=false;e.target.textContent='🗑️ Xóa xe này';save();renderAll();
 };
 const say=t=>{$('#msg').textContent=t};
 async function saveFile(name,data){
@@ -417,10 +501,11 @@ function merge(p){
   let nv=0,ne=0;
   p.vehicles.forEach(v=>{if(v&&v.id&&typeof v.name==='string'&&!vi.has(v.id)){v.u=Date.now();delete S.tomb[v.id];S.vehicles.push(v);vi.add(v.id);nv++}});
   p.entries.forEach(e=>{if(e&&e.id&&e.v&&TYPES[e.type]&&typeof e.date==='string'&&typeof e.amount==='number'&&!ei.has(e.id)&&S.vehicles.some(v=>v.id===e.v)){e.u=Date.now();delete S.tomb[e.id];S.entries.push(e);ei.add(e.id);ne++}});
+  (p.parts||[]).forEach(x=>{if(x&&x.id&&x.v&&typeof x.name==='string'&&!S.parts.some(y=>y.id===x.id)&&S.vehicles.some(v=>v.id===x.v)){x.u=Date.now();delete S.tomb[x.id];S.parts.push(x)}});
   if(!cur()&&S.vehicles[0])S.cur=S.vehicles[0].id;
   save();renderAll();say('Đã khôi phục '+nv+' xe và '+ne+' khoản mới. Dữ liệu trùng được bỏ qua.');
 }
-$('#exp').onclick=()=>saveFile('so-xe-sao-luu-'+today()+'.json',JSON.stringify({app:'so-xe',version:1,exported:today(),vehicles:S.vehicles,entries:S.entries},null,1));
+$('#exp').onclick=()=>saveFile('so-xe-sao-luu-'+today()+'.json',JSON.stringify({app:'so-xe',version:1,exported:today(),vehicles:S.vehicles,entries:S.entries,parts:S.parts},null,1));
 $('#csv').onclick=()=>{
   const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
   const rows=[['Xe','Biển số','Ngày','Loại','Số km','Số lít','Giá/lít','Số tiền','Đầy bình','Ghi chú']];
@@ -431,7 +516,7 @@ $('#csv').onclick=()=>{
   saveFile('so-xe-'+today()+'.csv','\ufeff'+rows.map(r=>r.map(q).join(';')).join('\r\n'));
 };
 $('#cp').onclick=async()=>{
-  const txt=JSON.stringify({app:'so-xe',version:1,exported:today(),vehicles:S.vehicles,entries:S.entries});
+  const txt=JSON.stringify({app:'so-xe',version:1,exported:today(),vehicles:S.vehicles,entries:S.entries,parts:S.parts});
   try{await navigator.clipboard.writeText(txt);say('Đã sao chép bản sao lưu. Hãy dán vào một file .json trên Google Drive, hoặc nhắn Claude để lưu giúp.')}
   catch(e){const m=$('#manual');m.hidden=false;m.open=true;$('#bk').value=txt;$('#bk').select();say('Trình duyệt không cho sao chép tự động. Hãy chọn toàn bộ nội dung trong ô bên dưới và sao chép.')}
 };
@@ -442,7 +527,7 @@ $('#file').onchange=e=>{
   r.onload=()=>{try{merge(JSON.parse(r.result))}catch(x){say('File không hợp lệ. Hãy chọn đúng file .json do Sổ Xe tạo ra.')}e.target.value=''};
   r.readAsText(f);
 };
-$('#exp2').onclick=()=>{$('#bk').value=JSON.stringify({app:'so-xe',version:1,vehicles:S.vehicles,entries:S.entries});$('#bk').select()};
+$('#exp2').onclick=()=>{$('#bk').value=JSON.stringify({app:'so-xe',version:1,vehicles:S.vehicles,entries:S.entries,parts:S.parts});$('#bk').select()};
 $('#imp2').onclick=()=>{try{merge(JSON.parse($('#bk').value));$('#bk').value=''}catch(x){say('Dữ liệu không hợp lệ. Hãy dán lại toàn bộ nội dung đã sao chép.')}};
 /* ===== Đồng bộ nhiều máy (cùng tài khoản claude.ai) ===== */
 let col=null,synced=false,timer=0,pushing=false,again=false,force=false;
@@ -454,7 +539,7 @@ let tok=null,tokExp=0,tc=null,pend=null,fileId=null,connected=false,busy2=false;
 const DEF_CID='1032619748060-172d176jjc9bkat78g547rt2vcen3t2c.apps.googleusercontent.com';
 let CLIENT_ID=DEF_CID;
 if(DEF_CID.indexOf('DAN_')===0){try{CLIENT_ID=localStorage.getItem('soxe_cid')||DEF_CID}catch(e){}}
-const build=()=>({app:'so-xe',version:1,vehicles:S.vehicles,entries:S.entries,tomb:S.tomb});
+const build=()=>({app:'so-xe',version:1,vehicles:S.vehicles,entries:S.entries,parts:S.parts,tomb:S.tomb});
 const tokenOk=()=>tok&&Date.now()<tokExp-60000;
 function getToken(){
   return new Promise((res,rej)=>{
@@ -498,7 +583,7 @@ async function syncNow(){
   try{
     const d=await pull();
     let r={ch:0,back:1};
-    if(d)r=mergeCloud({meta:{vehicles:d.vehicles||[],tomb:d.tomb||{}},all:{entries:d.entries||[]}});
+    if(d)r=mergeCloud({meta:{vehicles:d.vehicles||[],tomb:d.tomb||{}},all:{entries:d.entries||[]},parts:{items:d.parts||[]}});
     if(r.ch){try{localStorage.setItem('soxe_v1',JSON.stringify(S))}catch(e){}renderVeh();renderDash()}
     if(!d||r.back>0)await upload();
     setSync('Đã đồng bộ Google Drive lúc '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}));
@@ -522,11 +607,12 @@ function mergeCloud(docs){
     else if((it.u||0)<(arr[i].u||0))back++;
   };
   (meta.vehicles||[]).forEach(v=>take(S.vehicles,v));
-  Object.keys(docs).forEach(k=>{if(k!=='meta')(docs[k].entries||[]).forEach(e=>take(S.entries,e))});
-  const nv=S.vehicles.filter(x=>!dead(x)),ne=S.entries.filter(x=>!dead(x));
-  if(nv.length!==S.vehicles.length||ne.length!==S.entries.length)ch++;
-  S.vehicles=nv;S.entries=ne;
-  S.vehicles.concat(S.entries).forEach(x=>{if(!seen.has(x.id))back++});
+  Object.keys(docs).forEach(k=>{if(k!=='meta'&&k!=='parts')(docs[k].entries||[]).forEach(e=>take(S.entries,e))});
+  ((docs.parts||{}).items||[]).forEach(x=>take(S.parts,x));
+  const nv=S.vehicles.filter(x=>!dead(x)),ne=S.entries.filter(x=>!dead(x)),np=S.parts.filter(x=>!dead(x));
+  if(nv.length!==S.vehicles.length||ne.length!==S.entries.length||np.length!==S.parts.length)ch++;
+  S.vehicles=nv;S.entries=ne;S.parts=np;
+  S.vehicles.concat(S.entries,S.parts).forEach(x=>{if(!seen.has(x.id))back++});
   if(!cur()&&S.vehicles[0]){S.cur=S.vehicles[0].id;ch++}
   return {ch,back};
 }
