@@ -7,9 +7,9 @@
 <!-- Đặt CLIENT_ID của bạn ở dòng "const CLIENT_ID=" trong phần script. Xem README.md -->
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#e9eee9;--card:#fff;--ink:#14262b;--mut:#5a6d71;--line:#d3dbd5;--acc:#0b6b5d;--accT:#fff;--in:#1c8749;--out:#c2410c;--fuel:#d48a00;--svc:#3a6db4;--oth:#8b5fa9;--inp:#f6f8f6;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1b1e;--card:#172629;--ink:#e6efec;--mut:#92a7aa;--line:#2a3d41;--acc:#3ec5ad;--accT:#06231e;--in:#4cc982;--out:#ff8a4d;--fuel:#f0b429;--svc:#78a8ec;--oth:#c49be0;--inp:#0f1b1e;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0f1b1e;--card:#172629;--ink:#e6efec;--mut:#92a7aa;--line:#2a3d41;--acc:#3ec5ad;--accT:#06231e;--in:#4cc982;--out:#ff8a4d;--fuel:#f0b429;--svc:#78a8ec;--oth:#c49be0;--inp:#0f1b1e;color-scheme:dark}
+:root{--bg:#e9eee9;--card:#fff;--ink:#14262b;--mut:#5a6d71;--line:#d3dbd5;--acc:#0b6b5d;--accT:#fff;--in:#1c8749;--out:#c2410c;--fuel:#d48a00;--svc:#3a6db4;--oth:#8b5fa9;--inp:#f6f8f6;--gold:#d49a00;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1b1e;--card:#172629;--ink:#e6efec;--mut:#92a7aa;--line:#2a3d41;--acc:#3ec5ad;--accT:#06231e;--in:#4cc982;--out:#ff8a4d;--fuel:#f0b429;--svc:#78a8ec;--oth:#c49be0;--inp:#0f1b1e;--gold:#ffd54a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1b1e;--card:#172629;--ink:#e6efec;--mut:#92a7aa;--line:#2a3d41;--acc:#3ec5ad;--accT:#06231e;--in:#4cc982;--out:#ff8a4d;--fuel:#f0b429;--svc:#78a8ec;--oth:#c49be0;--inp:#0f1b1e;--gold:#ffd54a;color-scheme:dark}
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -53,6 +53,28 @@ form .chk{flex-direction:row;align-items:center;gap:8px;font-size:14px;color:var
 textarea{width:100%;height:90px;font-size:12px}
 .tabs button:disabled{opacity:.5;cursor:default}
 .sec{margin:10px 0 0;font-size:14px}
+body::before{content:"";position:fixed;inset:0;z-index:-2;background:var(--bgimg,none) center/cover no-repeat}
+body::after{content:"";position:fixed;inset:0;z-index:-1;background:var(--bg);opacity:var(--bgop,0);pointer-events:none}
+.bgt{height:64px;border:2px solid var(--line);border-radius:10px;color:#fff;font-size:11px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.8);display:flex;align-items:flex-end;padding:4px;cursor:pointer;text-align:left}
+.bgt.on{border-color:var(--acc);outline:2px solid var(--acc)}
+.me-pin{width:30px;height:40px;position:relative}
+.me-pin .pulse{position:absolute;left:3px;bottom:-4px;width:24px;height:10px;border-radius:50%;background:rgba(26,115,232,.45);animation:mepulse 1.8s ease-out infinite}
+@keyframes mepulse{0%{transform:scale(.4);opacity:.9}100%{transform:scale(2.2);opacity:0}}
+.med.ok{position:relative;overflow:hidden;background:linear-gradient(145deg,var(--inp),rgba(255,213,74,.18));border-color:var(--gold);animation:glow 3.2s ease-in-out infinite}
+.med.ok::after{content:"";position:absolute;top:0;left:0;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-160%) skewX(-20deg);animation:shine 4.5s ease-in-out infinite;pointer-events:none}
+.med .sp{position:absolute;color:var(--gold);font-style:normal;font-size:12px;opacity:0;animation:twinkle 2.6s ease-in-out infinite;pointer-events:none}
+.sp.s1{left:10%;top:12%}.sp.s2{right:12%;top:30%;animation-delay:.9s;font-size:10px}.sp.s3{left:22%;bottom:16%;animation-delay:1.7s;font-size:9px}
+.med.fresh{animation:glow 1.5s ease-in-out infinite,pop .9s cubic-bezier(.2,1.6,.4,1) both}
+.med.fresh .i{animation:spin 1.2s ease-out both}
+@keyframes glow{0%,100%{box-shadow:0 0 5px 0 var(--gold)}50%{box-shadow:0 0 16px 3px var(--gold)}}
+@keyframes shine{0%{transform:translateX(-160%) skewX(-20deg)}55%,100%{transform:translateX(420%) skewX(-20deg)}}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.4) rotate(0)}50%{opacity:1;transform:scale(1.3) rotate(90deg)}}
+@keyframes pop{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes spin{0%{transform:rotate(-360deg) scale(.2)}100%{transform:rotate(0) scale(1)}}
+.burst{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
+.burst i{position:absolute;left:50%;top:38%;font-style:normal;opacity:0;animation:fly 1.9s ease-out forwards}
+@keyframes fly{0%{transform:translate(0,0) scale(.3);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.4) rotate(220deg);opacity:0}}
+@media(prefers-reduced-motion:reduce){.med.ok,.med.ok::after,.med .sp,.med.fresh,.med.fresh .i,.me-pin .pulse{animation:none}.med .sp{opacity:.8}}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
 .med{border:1px solid var(--acc);border-radius:10px;padding:8px 6px;text-align:center;background:var(--inp);font-size:12px;line-height:1.3}
 .med .i{font-size:28px;line-height:1.2}
@@ -91,6 +113,8 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
       <label>Số km hiện tại<input id="vo" type="number" min="0" placeholder="0"></label>
       <label>🛢️ Dung tích bình xăng (lít)<input id="vt" type="number" step="0.1" min="0" placeholder="Ví dụ 5.5"></label>
       <label>⛽ Tiêu hao công bố (L/100km)<input id="vc" type="number" step="0.01" min="0" placeholder="Ví dụ 1.9"></label>
+      <label class="full">🏷️ Hãng xe (để tìm showroom gần bạn)<input id="vb" list="vbrands" placeholder="Honda, Yamaha, Toyota, VinFast…"></label>
+      <datalist id="vbrands"><option value="Honda"><option value="Yamaha"><option value="Suzuki"><option value="SYM"><option value="Piaggio"><option value="Vespa"><option value="VinFast"><option value="Toyota"><option value="Hyundai"><option value="Kia"><option value="Mazda"><option value="Ford"><option value="Mitsubishi"><option value="Mercedes-Benz"><option value="BMW"><option value="Honda ô tô"></datalist>
       <div class="full row"><button class="pri" type="submit">Lưu xe</button><button type="button" id="vcancel">Hủy</button></div>
     </form>
   </div>
@@ -103,8 +127,9 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
     <div id="gauge"></div>
     <form id="ef"></form>
     <div id="mapbox" class="card" hidden style="margin:12px 0 0">
-      <div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0">🗺️ Chọn cây xăng</h2><button type="button" id="mclose">✖ Đóng</button></div>
+      <div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 id="mtitle" style="margin:0">🗺️ Chọn cây xăng</h2><button type="button" id="mclose">✖ Đóng</button></div>
       <div id="mkeybox" class="row" hidden style="margin:6px 0"><input id="mkey" placeholder="Dán Mapbox token công khai (pk.…)" style="flex:1" aria-label="Mapbox token"><button type="button" id="mkeysave" class="pri">Lưu</button></div>
+      <div id="mbrandbox" class="row" hidden style="margin:6px 0"><input id="mbrand" list="vbrands" placeholder="Hãng xe (Honda, Yamaha, Toyota…)" style="flex:1" aria-label="Hãng xe"><button type="button" id="mbrandgo" class="pri">🔍 Tìm showroom</button></div>
       <p id="mmsg" class="empty" role="status" style="margin:4px 0 6px"></p>
       <div id="mapwrap"><div class="row" style="margin-bottom:6px"><button type="button" id="mfind">🔍 Tìm cây xăng ở khu vực này</button><button type="button" id="mloc">📍 Vị trí của tôi</button></div>
       <div id="map" style="height:300px;border-radius:10px;background:var(--inp)"></div><div id="mlist" style="max-height:220px;overflow:auto;margin-top:6px"></div></div>
@@ -114,6 +139,14 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
   </div>
 
   <div class="card"><h2>🕘 Lịch sử</h2><div class="tabs" id="hf"></div><div id="list"></div></div>
+
+  <div class="card">
+    <h2>🎨 Giao diện nền</h2>
+    <div id="bgs" class="mgrid"></div>
+    <div class="row" style="margin:8px 0"><button type="button" id="bgup">🖼️ Chọn ảnh của bạn</button><button type="button" id="bgoff">Bỏ nền</button><input id="bgfile" type="file" accept="image/*" hidden></div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--mut)">Độ mờ lớp phủ<input id="bgop" type="range" min="0" max="90" value="35" style="flex:1"></label>
+    <p id="bgmsg" class="empty" role="status" style="margin:6px 0 0">Nền chỉ lưu trên thiết bị này.</p>
+  </div>
 
   <div class="card">
     <h2>☁️ Quản lý dữ liệu</h2>
@@ -391,11 +424,30 @@ function medals(){
   [[7,'🌱','Tuần đầu tiên'],[30,'📅','1 tháng đồng hành'],[100,'💯','100 ngày đồng hành'],[365,'🎂','1 năm đồng hành']].forEach(x=>add('gen','age',x[1],x[2],'Dùng app '+x[0]+' ngày kể từ khoản đầu tiên',age,x[0],ageWhen(x[0])));
   [10,50,100,250].forEach(n=>add('gen','ent','📝','Ghi chép '+n+' khoản','Ghi tổng cộng '+n+' khoản',all.length,n,all[n-1]&&all[n-1].date));
   [1,10].forEach(n=>add('gen','inc','💰','Thu nhập '+n+' lần','Ghi '+n+' khoản thu nhập',inc.length,n,inc[n-1]&&inc[n-1].date));
+  const fuels=E.filter(e=>e.type==='fuel');
+  [20,50,100].forEach(n=>add('fuel','fills',tier(n),'Đổ xăng '+n+' lần','Ghi tổng cộng '+n+' lần đổ xăng',fuels.length,n,fuels.slice().sort(byD)[n-1]&&fuels.slice().sort(byD)[n-1].date));
+  add('fuel','pin','📌','Ghim cây xăng đầu tiên','Chọn cây xăng bằng bản đồ ở một lần đổ xăng',fuels.filter(e=>e.place).length,1);
+  [3,5,10].forEach(n=>add('fuel','explore','🧭','Khám phá '+n+' cây xăng','Đổ xăng ở '+n+' cây xăng khác nhau',Object.keys(pl).length,n));
+  const sp={};
+  svc.filter(e=>e.place).forEach(e=>{const k=e.place.pid||e.place.name;(sp[k]=sp[k]||[]).push(e)});
+  const topS=Object.keys(sp).map(k=>sp[k]).sort((a,b)=>b.length-a.length)[0]||[];
+  [3,5].forEach(n=>add('service','shop','🏬','Thợ quen '+n+' lần','Bảo dưỡng '+n+' lần ở cùng một showroom hoặc xưởng',topS.length,n,topS[n-1]&&topS[n-1].date));
+  add('service','parts','🧰','Theo dõi 8 linh kiện','Thêm 8 linh kiện vào danh sách hạn thay',ps.length,8);
+  const od=E.filter(e=>e.v===S.cur&&e.odo).map(e=>e.odo),kmT=od.length>1?Math.max(...od)-Math.min(...od):0;
+  [500,1000,5000,10000,20000,50000].forEach(n=>add('gen','km','🛣️',n.toLocaleString('vi-VN')+' km đã ghi','Quãng đường đã ghi nhận đạt '+n.toLocaleString('vi-VN')+' km',kmT,n));
+  const ds=Array.from(new Set(all.map(e=>e.date))).sort();let best=0,run=0,prev=null;
+  ds.forEach(d=>{const t=new Date(d).getTime();run=prev!==null&&Math.round((t-prev)/864e5)===1?run+1:1;prev=t;best=Math.max(best,run)});
+  [3,7,14,30].forEach(n=>add('gen','streak','🔥','Ghi chép liên tục '+n+' ngày','Có khoản ghi mỗi ngày trong '+n+' ngày liên tiếp',best,n));
+  const tin=sm(inc,e=>e.amount),tout=sm(E.filter(e=>e.type!=='income'),e=>e.amount);
+  add('gen','profit','📈','Có lãi','Tổng thu nhập lớn hơn tổng chi phí',tin>0&&tin>tout?1:0,1);
+  add('gen','types','🎯','Đủ bộ 4 loại khoản','Đã ghi đủ đổ xăng, bảo dưỡng, chi phí khác và thu nhập',new Set(E.map(e=>e.type)).size,4);
+  [2,3].forEach(n=>add('gen','garage','🏘️','Nhà có '+n+' xe','Quản lý '+n+' xe trong app',S.vehicles.length,n));
+  add('gen','bg','🎨','Phong cách riêng','Đổi nền giao diện của app',BG.mode!=='none'?1:0,1);
   return L;
 }
-function medalCard(m){
+function medalCard(m,fresh){
   const ok=m.cur>=m.goal,pc=Math.min(100,m.cur/m.goal*100);
-  return `<div class="med${ok?'':' lock'}" title="${esc(m.desc)}"><div class="i">${m.icon}</div><b>${esc(m.name)}</b><small>${ok?'Đã đạt'+(m.when?' · '+fmtD(m.when):''):Math.min(m.cur,m.goal)+'/'+m.goal}</small>${ok?'':`<div class="bar" style="height:5px;margin:4px 0 0"><span style="width:${pc}%;background:var(--acc)"></span></div>`}</div>`;
+  return `<div class="med ${ok?'ok':'lock'}${fresh?' fresh':''}" title="${esc(m.desc)}">${ok?'<i class="sp s1">✦</i><i class="sp s2">✧</i><i class="sp s3">✦</i>':''}<div class="i">${m.icon}</div><b>${esc(m.name)}</b><small>${ok?'Đã đạt'+(m.when?' · '+fmtD(m.when):''):Math.min(m.cur,m.goal)+'/'+m.goal}</small>${ok?'':`<div class="bar" style="height:5px;margin:4px 0 0"><span style="width:${pc}%;background:var(--acc)"></span></div>`}</div>`;
 }
 function seenIds(){
   let sn=null;try{sn=JSON.parse(localStorage.getItem('soxe_seen')||'null')}catch(e){}
@@ -405,10 +457,25 @@ function seenIds(){
   }
   return sn;
 }
+const fired=new Set();
+function burst(){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const d=document.createElement('div'),ch=['✨','⭐','✦','🌟','🎉'];
+  d.className='burst';
+  for(let i=0;i<40;i++){
+    const e=document.createElement('i'),a=Math.random()*Math.PI*2,r=120+Math.random()*Math.min(innerWidth,500)*.6;
+    e.textContent=ch[i%ch.length];
+    e.style.cssText='--dx:'+Math.cos(a)*r+'px;--dy:'+Math.sin(a)*r+'px;font-size:'+(12+Math.random()*18)+'px;animation-delay:'+Math.random()*.25+'s';
+    d.appendChild(e);
+  }
+  document.body.appendChild(d);setTimeout(()=>d.remove(),2400);
+}
 function freshMedals(){
   if(!cur())return '';
   const sn=seenIds(),f=medals().filter(m=>m.cur>=m.goal&&!sn.includes(m.fam+m.goal));
-  return f.length?`<div class="card" style="border-color:var(--acc)"><h2>🎉 Huy chương mới!</h2><div class="mgrid">${f.map(medalCard).join('')}</div><button id="mseen" class="pri" style="margin-top:10px">Tuyệt vời!</button></div>`:'';
+  const nw=f.filter(m=>!fired.has(m.fam+m.goal));
+  if(nw.length){nw.forEach(m=>fired.add(m.fam+m.goal));setTimeout(burst,80)}
+  return f.length?`<div class="card" style="border-color:var(--gold)"><h2>🎉 Huy chương mới!</h2><div class="mgrid">${f.map(m=>medalCard(m,true)).join('')}</div><button id="mseen" class="pri" style="margin-top:10px">Tuyệt vời!</button></div>`:'';
 }
 function medalsDash(){
   if(!cur())return '';
@@ -429,13 +496,14 @@ function renderStrip(){
   el.innerHTML=`<div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px"><h2>🏅 Huy chương ${g==='fuel'?'nhiên liệu':'bảo dưỡng'} (${L.filter(m=>m.cur>=m.goal).length}/${L.length})</h2><div class="mgrid">${cards.map(medalCard).join('')}</div></div>`;
 }
 
-/* ===== Bản đồ chọn cây xăng (Mapbox GL JS + Search Box API) ===== */
-const DEF_MBTOKEN='pk.eyJ1IjoibmFtbmFtOTM5MyIsImEiOiJjbXZ0NHJxbDYwMG9pMnhvbWJhbnc3eGY1In0.j5JGeIQO7ei6zLk6f3t9fQ';
+/* ===== Bản đồ (Mapbox GL JS + Search Box API): cây xăng và showroom ===== */
+const DEF_MBTOKEN='';
 let MBT=DEF_MBTOKEN;
 if(!MBT){try{MBT=localStorage.getItem('soxe_mbtoken')||''}catch(e){}}
-let map=null,mmarks=[],mlist=[],selPlace=null;
+let map=null,mmarks=[],mlist=[],selPlace=null,mapMode='fuel',meMark=null,myPos=null,watchId=null;
 const mset=t=>{$('#mmsg').textContent=t};
 const MBV='v2.15.0',BADTOK='Mapbox từ chối token này. Kiểm tra token công khai (bắt đầu bằng pk.) và giới hạn URL.';
+const ME_SVG='<span class="pulse"></span><svg width="30" height="40" viewBox="0 0 30 40" aria-hidden="true"><path d="M15 1C7.3 1 1.5 6.9 1.5 14.2 1.5 24 15 39 15 39s13.5-15 13.5-24.8C28.5 6.9 22.7 1 15 1z" fill="#1a73e8" stroke="#fff" stroke-width="2"/><circle cx="15" cy="14" r="5" fill="#fff"/></svg>';
 function loadMB(){
   return new Promise((res,rej)=>{
     if(window.mapboxgl)return res();
@@ -451,61 +519,107 @@ function lastPlace(){
 function renderPlace(){
   const el=$('#placebox');
   if(!el)return;
-  el.innerHTML=selPlace?`<div class="row" style="justify-content:space-between;gap:8px"><span>📍 <b>${esc(selPlace.name)}</b><br><small class="empty">${esc(selPlace.addr||'')}</small></span><span><button type="button" id="mapopen">Đổi</button> <button type="button" id="plclear">Bỏ</button></span></div>`:'<button type="button" id="mapopen">🗺️ Chọn cây xăng trên bản đồ</button>';
+  const dl=tab==='service';
+  el.innerHTML=selPlace?`<div class="row" style="justify-content:space-between;gap:8px"><span>${dl?'🏬':'📍'} <b>${esc(selPlace.name)}</b><br><small class="empty">${esc(selPlace.addr||'')}</small></span><span><button type="button" id="mapopen">Đổi</button> <button type="button" id="plclear">Bỏ</button></span></div>`
+    :'<button type="button" id="mapopen">'+(dl?'🏬 Tìm showroom / xưởng dịch vụ trên bản đồ':'🗺️ Chọn cây xăng trên bản đồ')+'</button>';
 }
+function stopWatch(){if(watchId!=null&&navigator.geolocation){navigator.geolocation.clearWatch(watchId)}watchId=null}
 function pickPlace(pl){
   if(!pl)return;
-  selPlace=pl;$('#mapbox').hidden=true;renderPlace();
+  selPlace=pl;$('#mapbox').hidden=true;stopWatch();renderPlace();
+}
+function setMe(lat,lng){
+  myPos={lat,lng};
+  if(!map)return;
+  if(!meMark){
+    const el=document.createElement('div');el.className='me-pin';el.title='Vị trí của bạn';el.innerHTML=ME_SVG;
+    meMark=new mapboxgl.Marker({element:el,anchor:'bottom'}).setLngLat([lng,lat]).addTo(map);
+  }else meMark.setLngLat([lng,lat]);
+}
+function getPos(){
+  return new Promise(res=>{
+    if(!navigator.geolocation)return res(null);
+    navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),()=>res(null),{timeout:5000,maximumAge:60000});
+  });
+}
+function startWatch(){
+  if(!navigator.geolocation||watchId!=null)return;
+  watchId=navigator.geolocation.watchPosition(p=>setMe(p.coords.latitude,p.coords.longitude),()=>{},{enableHighAccuracy:true,maximumAge:10000});
+}
+async function sbFetch(path){
+  const c=map.getCenter(),b=map.getBounds();
+  const base='https://api.mapbox.com/search/searchbox/v1/'+path+(path.indexOf('?')>=0?'&':'?')+'access_token='+encodeURIComponent(MBT)+'&language=vi&proximity='+c.lng+','+c.lat;
+  let r=await fetch(base+'&bbox='+[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(','));
+  if(!r.ok&&r.status!==401&&r.status!==403)r=await fetch(base);
+  if(r.status===401||r.status===403)throw new Error('auth');
+  if(!r.ok)throw new Error('http'+r.status);
+  return (await r.json()).features||[];
 }
 async function findStations(){
-  mset('Đang tìm cây xăng…');
+  const dl=mapMode==='dealer';
+  let brand='';
+  if(dl){
+    brand=$('#mbrand').value.trim();
+    if(!brand){mset('Nhập hãng xe (ví dụ Honda, Yamaha, Toyota) rồi bấm Tìm showroom.');return}
+    const v=cur();if(v&&v.brand!==brand){v.brand=brand;v.u=Date.now();save()}
+  }
+  mset(dl?'Đang tìm showroom '+brand+'…':'Đang tìm cây xăng…');
   try{
-    const c=map.getCenter(),b=map.getBounds();
-    const base='https://api.mapbox.com/search/searchbox/v1/category/gas_station?access_token='+encodeURIComponent(MBT)+'&language=vi&limit=25&proximity='+c.lng+','+c.lat;
-    const bb='&bbox='+[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(',');
-    let r=await fetch(base+bb);
-    if(!r.ok&&r.status!==401&&r.status!==403)r=await fetch(base);
-    if(r.status===401||r.status===403){mset(BADTOK);return}
-    if(!r.ok)throw new Error('http'+r.status);
-    const j=await r.json();
+    const fs=dl?(await Promise.all([sbFetch('forward?types=poi&limit=10&q='+encodeURIComponent(brand)),sbFetch('forward?types=poi&limit=10&q='+encodeURIComponent(brand+' showroom'))])).flat()
+      :await sbFetch('category/gas_station?limit=25');
+    const seen=new Set();
     mmarks.forEach(m=>m.remove());mmarks=[];
-    mlist=(j.features||[]).map(f=>({pid:f.properties.mapbox_id||'',name:f.properties.name||'Cây xăng',addr:f.properties.full_address||f.properties.address||'',lng:f.geometry.coordinates[0],lat:f.geometry.coordinates[1]}));
+    mlist=fs.map(f=>({pid:f.properties.mapbox_id||'',name:f.properties.name||(dl?'Showroom':'Cây xăng'),addr:f.properties.full_address||f.properties.address||'',lng:f.geometry.coordinates[0],lat:f.geometry.coordinates[1]}))
+      .filter(pl=>{const k=pl.pid||pl.name+pl.lat+pl.lng;if(seen.has(k))return false;seen.add(k);return true});
+    const ic=dl?'🏬':'⛽';
     mlist.forEach(pl=>{
       const el=document.createElement('div');
-      el.textContent='⛽';el.title=pl.name;el.style.cssText='font-size:24px;cursor:pointer;line-height:1';
+      el.textContent=ic;el.title=pl.name;el.style.cssText='font-size:24px;cursor:pointer;line-height:1';
       el.onclick=ev=>{ev.stopPropagation();pickPlace(pl)};
       mmarks.push(new mapboxgl.Marker({element:el}).setLngLat([pl.lng,pl.lat]).addTo(map));
     });
-    $('#mlist').innerHTML=mlist.map((pl,i)=>`<button type="button" class="lnk" data-mp="${i}" style="display:block;text-align:left;width:100%"><b>⛽ ${esc(pl.name)}</b><br><small>${esc(pl.addr)}</small></button>`).join('');
-    mset(mlist.length?'Tìm thấy '+mlist.length+' cây xăng trong khu vực đang xem. Bấm biểu tượng ⛽ hoặc danh sách để chọn.':'Không có cây xăng nào trong khu vực này. Hãy kéo hoặc thu nhỏ bản đồ rồi bấm tìm lại.');
-  }catch(e){mset('Không tìm được cây xăng. Kiểm tra mạng và token Mapbox.')}
+    $('#mlist').innerHTML=mlist.map((pl,i)=>`<button type="button" class="lnk" data-mp="${i}" style="display:block;text-align:left;width:100%"><b>${ic} ${esc(pl.name)}</b><br><small>${esc(pl.addr)}</small></button>`).join('');
+    mset(mlist.length?'Tìm thấy '+mlist.length+(dl?' địa điểm ':' cây xăng ')+'trong khu vực đang xem. Bấm biểu tượng '+ic+' hoặc danh sách để chọn.':(dl?'Không thấy showroom '+brand+' trong khu vực này. Hãy thu nhỏ hoặc kéo bản đồ rồi tìm lại, hoặc thử tên hãng khác.':'Không có cây xăng nào trong khu vực này. Hãy kéo hoặc thu nhỏ bản đồ rồi bấm tìm lại.'));
+  }catch(e){mset(e&&e.message==='auth'?BADTOK:'Không tìm được. Kiểm tra mạng và token Mapbox.')}
 }
-async function openMap(){
-  const box=$('#mapbox');
+async function openMap(mode){
+  mapMode=mode||'fuel';
+  const dl=mapMode==='dealer',box=$('#mapbox');
   box.hidden=false;box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  $('#mtitle').textContent=dl?'🏬 Showroom / xưởng dịch vụ':'🗺️ Chọn cây xăng';
+  $('#mbrandbox').hidden=!dl;
+  if(dl){const v=cur();if(!$('#mbrand').value)$('#mbrand').value=v&&v.brand||''}
   if(!MBT){$('#mkeybox').hidden=false;$('#mapwrap').hidden=true;mset('Cần Mapbox token công khai (bắt đầu bằng pk.) để dùng bản đồ. Xem README.');return}
   $('#mkeybox').hidden=true;$('#mapwrap').hidden=false;
   try{
-    mset('Đang tải bản đồ…');
+    mset('Đang tải bản đồ và xác định vị trí của bạn…');
     await loadMB();
     mapboxgl.accessToken=MBT;
     if(!map){
-      const lp=lastPlace(),dk=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
-      map=new mapboxgl.Map({container:'map',style:'mapbox://styles/mapbox/'+(dk?'dark-v11':'streets-v12'),center:lp?[lp.lng,lp.lat]:[106.7009,10.7769],zoom:14});
+      const pos=await getPos(),lp=lastPlace(),dk=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
+      map=new mapboxgl.Map({container:'map',style:'mapbox://styles/mapbox/'+(dk?'dark-v11':'streets-v12'),center:pos?[pos.lng,pos.lat]:lp?[lp.lng,lp.lat]:[106.7009,10.7769],zoom:14});
       map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'top-right');
       map.on('error',e=>{const st=e&&e.error&&e.error.status;if(st===401||st===403)mset(BADTOK)});
       await new Promise(r=>map.once('load',r));
+      if(pos)setMe(pos.lat,pos.lng);
     }else map.resize();
+    startWatch();
+    if(myPos&&!meMark)setMe(myPos.lat,myPos.lng);
+    if(!myPos)mset('Chưa lấy được vị trí của bạn. Hãy cho phép truy cập vị trí để thấy ghim xanh.');
+    if(dl&&!$('#mbrand').value.trim()){mset('Nhập hãng xe rồi bấm Tìm showroom.');return}
     await findStations();
   }catch(e){mset('Không tải được bản đồ. Kiểm tra mạng và token Mapbox.')}
 }
-$('#mapbox').onclick=e=>{
+$('#mapbox').onclick=async e=>{
   const t=e.target,id=t.id;
-  if(id==='mclose'){$('#mapbox').hidden=true;return}
-  if(id==='mfind'){if(map)findStations();return}
+  if(id==='mclose'){$('#mapbox').hidden=true;stopWatch();return}
+  if(id==='mfind'||id==='mbrandgo'){if(map)findStations();return}
   if(id==='mloc'){
-    if(!navigator.geolocation||!map){mset('Thiết bị không cho lấy vị trí.');return}
-    navigator.geolocation.getCurrentPosition(p=>{map.once('moveend',findStations);map.flyTo({center:[p.coords.longitude,p.coords.latitude],zoom:15})},()=>mset('Không lấy được vị trí. Hãy cho phép truy cập vị trí hoặc kéo bản đồ.'));
+    if(!map)return;
+    let p=myPos;
+    if(!p){p=await getPos();if(p)setMe(p.lat,p.lng)}
+    if(!p){mset('Không lấy được vị trí. Hãy cho phép truy cập vị trí cho trang này.');return}
+    map.once('moveend',findStations);map.flyTo({center:[p.lng,p.lat],zoom:15});
     return;
   }
   if(id==='mkeysave'){
@@ -513,10 +627,62 @@ $('#mapbox').onclick=e=>{
     if(k.indexOf('sk.')===0){mset('Đây là token bí mật (sk.). Không dùng ở đây. Hãy dùng token công khai bắt đầu bằng pk.');return}
     if(k.indexOf('pk.')!==0||k.length<30){mset('Token chưa đúng. Token công khai bắt đầu bằng pk.');return}
     MBT=k;try{localStorage.setItem('soxe_mbtoken',k)}catch(x){}
-    openMap();return;
+    openMap(mapMode);return;
   }
   const b=t.closest('[data-mp]');
   if(b)pickPlace(mlist[+b.dataset.mp]);
+};
+$('#mbrand').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();if(map)findStations()}};
+
+/* ===== Nền tùy chỉnh ===== */
+const SV=(b)=>'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">'+b+'</svg>';
+const PRESETS=[
+ {id:'sunset',name:'🌅 Hoàng hôn',svg:SV('<defs><linearGradient id="a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b2a6e"/><stop offset=".55" stop-color="#e2557b"/><stop offset="1" stop-color="#ffb86b"/></linearGradient></defs><rect width="800" height="500" fill="url(#a)"/><circle cx="400" cy="270" r="70" fill="#ffd9a0" opacity=".9"/><polygon points="0,500 0,330 800,330 800,500" fill="#2a1c3d"/><polygon points="360,330 440,330 780,500 20,500" fill="#1a1226"/><line x1="400" y1="336" x2="400" y2="500" stroke="#ffd9a0" stroke-width="6" stroke-dasharray="26 22"/>')},
+ {id:'bike',name:'🏍️ Xe máy',svg:SV('<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f766e"/><stop offset="1" stop-color="#134e4a"/></linearGradient></defs><rect width="800" height="500" fill="url(#a)"/><g fill="none" stroke="#ffffff" stroke-opacity=".38" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><circle cx="250" cy="360" r="62"/><circle cx="560" cy="360" r="62"/><path d="M250 360 L330 260 L450 260 L500 320 L560 360 M330 260 L300 215 L360 205 M480 295 L520 215 L585 205 M330 300 L470 300"/></g><rect y="425" width="800" height="75" fill="#ffffff" fill-opacity=".1"/>')},
+ {id:'car',name:'🚗 Xe hơi',svg:SV('<defs><linearGradient id="a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1e3a8a"/><stop offset="1" stop-color="#0b1330"/></linearGradient></defs><rect width="800" height="500" fill="url(#a)"/><g fill="#ffffff" fill-opacity=".3"><path d="M130 360 Q150 290 270 270 L420 262 Q520 262 570 320 L650 335 Q670 340 670 380 L670 400 L130 400 Z"/></g><g fill="#0b1330"><circle cx="270" cy="400" r="48"/><circle cx="540" cy="400" r="48"/></g><g fill="#ffffff" fill-opacity=".45"><circle cx="270" cy="400" r="22"/><circle cx="540" cy="400" r="22"/></g><rect y="445" width="800" height="55" fill="#ffffff" fill-opacity=".08"/>')},
+ {id:'city',name:'🌃 Đêm phố',svg:SV('<defs><linearGradient id="a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1026"/><stop offset="1" stop-color="#312e81"/></linearGradient></defs><rect width="800" height="500" fill="url(#a)"/><g fill="#0b1026"><rect x="20" y="240" width="90" height="260"/><rect x="120" y="170" width="70" height="330"/><rect x="200" y="280" width="100" height="220"/><rect x="310" y="130" width="80" height="370"/><rect x="400" y="220" width="110" height="280"/><rect x="520" y="150" width="70" height="350"/><rect x="600" y="260" width="90" height="240"/><rect x="700" y="190" width="80" height="310"/></g><g fill="#fde68a" fill-opacity=".8"><rect x="40" y="270" width="10" height="14"/><rect x="70" y="310" width="10" height="14"/><rect x="140" y="210" width="10" height="14"/><rect x="150" y="260" width="10" height="14"/><rect x="330" y="170" width="10" height="14"/><rect x="350" y="230" width="10" height="14"/><rect x="430" y="260" width="10" height="14"/><rect x="540" y="200" width="10" height="14"/><rect x="620" y="300" width="10" height="14"/><rect x="720" y="240" width="10" height="14"/></g>')},
+ {id:'red',name:'🔴 Tông đỏ',svg:SV('<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c8102e"/><stop offset="1" stop-color="#3a0610"/></linearGradient></defs><rect width="800" height="500" fill="url(#a)"/><g stroke="#fff" stroke-opacity=".12" stroke-width="30"><line x1="-50" y1="520" x2="450" y2="-20"/><line x1="150" y1="540" x2="650" y2="0"/><line x1="350" y1="560" x2="850" y2="20"/></g>')},
+ {id:'blue',name:'🔵 Tông xanh',svg:SV('<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1747b3"/><stop offset="1" stop-color="#06183d"/></linearGradient></defs><rect width="800" height="500" fill="url(#a)"/><g stroke="#fff" stroke-opacity=".12" stroke-width="30"><line x1="-50" y1="520" x2="450" y2="-20"/><line x1="150" y1="540" x2="650" y2="0"/><line x1="350" y1="560" x2="850" y2="20"/></g>')},
+ {id:'green',name:'🟢 Tông lục',svg:SV('<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#15803d"/><stop offset="1" stop-color="#052e16"/></linearGradient></defs><rect width="800" height="500" fill="url(#a)"/><g stroke="#fff" stroke-opacity=".12" stroke-width="30"><line x1="-50" y1="520" x2="450" y2="-20"/><line x1="150" y1="540" x2="650" y2="0"/><line x1="350" y1="560" x2="850" y2="20"/></g>')}
+];
+let BG={mode:'none',id:'',data:'',op:35};
+try{const b0=JSON.parse(localStorage.getItem('soxe_bg')||'null');if(b0&&b0.mode)BG=Object.assign(BG,b0)}catch(e){}
+const svgUrl=p=>'data:image/svg+xml,'+encodeURIComponent(p.svg);
+function applyBG(){
+  const r=document.documentElement.style;
+  let u='none';
+  if(BG.mode==='img'&&BG.data)u='url("'+BG.data+'")';
+  else if(BG.mode==='preset'){const p=PRESETS.find(x=>x.id===BG.id);if(p)u='url("'+svgUrl(p)+'")'}
+  r.setProperty('--bgimg',u);r.setProperty('--bgop',u==='none'?0:BG.op/100);
+  $('#bgop').value=BG.op;
+  $('#bgs').innerHTML=PRESETS.map(p=>`<button type="button" class="bgt${BG.mode==='preset'&&BG.id===p.id?' on':''}" data-bg="${p.id}" style="background:url('${svgUrl(p)}') center/cover" aria-label="${p.name}">${p.name}</button>`).join('');
+}
+function setBG(o){
+  const old=Object.assign({},BG);
+  BG=Object.assign(BG,o);
+  try{localStorage.setItem('soxe_bg',JSON.stringify(BG))}
+  catch(e){BG=old;$('#bgmsg').textContent='Không lưu được ảnh (bộ nhớ trình duyệt đầy). Hãy chọn ảnh nhỏ hơn.';return}
+  $('#bgmsg').textContent='Nền chỉ lưu trên thiết bị này.';
+  applyBG();renderDash();
+}
+$('#bgs').onclick=e=>{const b=e.target.closest('[data-bg]');if(b)setBG({mode:'preset',id:b.dataset.bg,data:''})};
+$('#bgoff').onclick=()=>setBG({mode:'none',id:'',data:''});
+$('#bgup').onclick=()=>$('#bgfile').click();
+$('#bgop').oninput=e=>{BG.op=+e.target.value;document.documentElement.style.setProperty('--bgop',BG.mode==='none'?0:BG.op/100)};
+$('#bgop').onchange=()=>{try{localStorage.setItem('soxe_bg',JSON.stringify(BG))}catch(e){}};
+$('#bgfile').onchange=e=>{
+  const f=e.target.files[0];
+  if(!f)return;
+  const img=new Image(),url=URL.createObjectURL(f);
+  img.onload=()=>{
+    const k=Math.min(1,1280/Math.max(img.width,img.height)),c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(img.width*k));c.height=Math.max(1,Math.round(img.height*k));
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    URL.revokeObjectURL(url);
+    setBG({mode:'img',id:'',data:c.toDataURL('image/jpeg',.72)});
+  };
+  img.onerror=()=>{URL.revokeObjectURL(url);$('#bgmsg').textContent='Không đọc được ảnh này.'};
+  img.src=url;e.target.value='';
 };
 
 function measured(fl){
@@ -628,8 +794,8 @@ function renderForm(ed){
   let h='';
   if(tab==='fuel')h=d+odo(true)+mny('f_p','🏷️ Giá mỗi lít (VNĐ)',x.price)+mny('f_amt','💵 Tổng tiền đã trả (VNĐ)',x.amount)
     +`<label>🛢️ Số lít (tự tính)<input id="f_l" type="number" step="0.01" min="0" required value="${x.liters||''}"></label>
-    <label class="chk"><input id="f_full" type="checkbox" ${(ed?x.full:true)?'checked':''}> ⛽ Đổ đầy bình</label>`+note('Ví dụ: A95, cây xăng Petrolimex',false)+'<div class="full" id="placebox"></div>';
-  else if(tab==='service')h=d+odo(false)+note('Thay nhớt, lốp, má phanh…',true)+partSel(x)+mny('f_amt','💵 Chi phí (VNĐ)',x.amount,true);
+    <label class="chk"><input id="f_full" type="checkbox" ${(ed?x.full:true)?'checked':''}> ⛽ Đổ đầy bình</label>`+'<div class="full" id="placebox"></div>';
+  else if(tab==='service')h=d+odo(false)+note('Thay nhớt, lốp, má phanh…',true)+partSel(x)+mny('f_amt','💵 Chi phí (VNĐ)',x.amount,true)+'<div class="full" id="placebox"></div>';
   else if(tab==='other')h=d+odo(false)+note('Gửi xe, phí cầu đường, bảo hiểm, rửa xe…',true)+mny('f_amt','💵 Số tiền (VNĐ)',x.amount,true);
   else h=d+odo(false)+note('Chạy xe công nghệ, chở hàng, cho thuê…',true)+mny('f_amt','💵 Số tiền (VNĐ)',x.amount,true);
   $('#ef').innerHTML=h+`<div class="full row"><button class="pri" type="submit">${ed?'Cập nhật':'Lưu '+TYPES[tab][0].toLowerCase()}</button>${ed?'<button type="button" id="ecancel">Hủy sửa</button>':''}</div>`;
@@ -650,7 +816,7 @@ $('#ef').oninput=e=>{
 $('#ef').onclick=e=>{
   const id=e.target.id;
   if(id==='ecancel')renderForm();
-  else if(id==='mapopen')openMap();
+  else if(id==='mapopen')openMap(tab==='service'?'dealer':'fuel');
   else if(id==='plclear'){selPlace=null;renderPlace()}
 };
 $('#hf').onclick=e=>{const b=e.target.closest('[data-hf]');if(b){hist=b.dataset.hf;renderDash()}};
@@ -658,10 +824,10 @@ $('#ef').onsubmit=e=>{
   e.preventDefault();
   const g=id=>{const el=$('#'+id);return el?el.value:''};
   const old=editId?S.entries.find(x=>x.id===editId):null;
-  const en={id:old?old.id:uid(),v:old?old.v:S.cur,type:tab,date:g('f_date'),odo:+g('f_odo')||0,note:g('f_note').trim(),amount:pn('f_amt'),u:Date.now()};
+  const en={id:old?old.id:uid(),v:old?old.v:S.cur,type:tab,date:g('f_date'),odo:+g('f_odo')||0,note:$('#f_note')?g('f_note').trim():(old?old.note||'':''),amount:pn('f_amt'),u:Date.now()};
   if(!(en.amount>0))return;
   if(tab==='fuel'){en.liters=+g('f_l');en.price=pn('f_p');en.full=$('#f_full').checked;if(selPlace)en.place=selPlace}
-  if(tab==='service')en.part=g('f_part')||'';
+  if(tab==='service'){en.part=g('f_part')||'';if(selPlace)en.place=selPlace}
   if(old)S.entries[S.entries.indexOf(old)]=en;else S.entries.push(en);
   const v=S.vehicles.find(x=>x.id===en.v);
   if(v&&en.odo>(v.odo||0)){v.odo=en.odo;v.u=Date.now()}
@@ -676,15 +842,15 @@ $('#list').onclick=e=>{
 };
 $('#veh').onchange=e=>{S.cur=e.target.value;save();armed=false;renderAll()};
 $('#per').onchange=e=>{per=e.target.value;renderDash()};
-const openV=ed=>{editV=ed;const v=cur();$('#vh').textContent=ed?'✏️ Sửa xe':'🚗 Thêm xe';$('#vn').value=ed?v.name:'';$('#vp').value=ed?(v.plate||''):'';$('#vo').value=ed?(v.odo||''):'';$('#vt').value=ed?(v.tank||''):'';$('#vc').value=ed?(v.cons||''):'';$('#vform').dataset.open='1';renderVeh();$('#vn').focus()};
+const openV=ed=>{editV=ed;const v=cur();$('#vh').textContent=ed?'✏️ Sửa xe':'🚗 Thêm xe';$('#vn').value=ed?v.name:'';$('#vp').value=ed?(v.plate||''):'';$('#vo').value=ed?(v.odo||''):'';$('#vt').value=ed?(v.tank||''):'';$('#vc').value=ed?(v.cons||''):'';$('#vb').value=ed?(v.brand||''):'';$('#vform').dataset.open='1';renderVeh();$('#vn').focus()};
 $('#addv').onclick=()=>openV(false);
 $('#editv').onclick=()=>{if(cur())openV(true)};
 $('#vcancel').onclick=()=>{delete $('#vform').dataset.open;editV=false;renderVeh()};
 $('#vf').onsubmit=e=>{
   e.preventDefault();
-  const name=$('#vn').value.trim(),plate=$('#vp').value.trim(),odo=+$('#vo').value||0,tank=+$('#vt').value||0,cons=+$('#vc').value||0;
-  if(editV&&cur())Object.assign(cur(),{name,plate,odo,tank,cons,u:Date.now()});
-  else{const v={id:uid(),name,plate,odo,tank,cons,u:Date.now()};S.vehicles.push(v);S.cur=v.id}
+  const name=$('#vn').value.trim(),plate=$('#vp').value.trim(),odo=+$('#vo').value||0,tank=+$('#vt').value||0,cons=+$('#vc').value||0,brand=$('#vb').value.trim();
+  if(editV&&cur())Object.assign(cur(),{name,plate,odo,tank,cons,brand,u:Date.now()});
+  else{const v={id:uid(),name,plate,odo,tank,cons,brand,u:Date.now()};S.vehicles.push(v);S.cur=v.id}
   save();delete $('#vform').dataset.open;editV=false;e.target.reset();renderAll();
 };
 $('#delv').onclick=e=>{
@@ -853,6 +1019,7 @@ let regr=0;
 document.addEventListener('pointerdown',()=>{if(connected&&!tokenOk()&&Date.now()-regr>30000){regr=Date.now();getToken().then(syncNow).catch(()=>{})}},true);
 setInterval(()=>{if(connected&&tokenOk()&&!document.hidden)syncNow()},60000);
 document.addEventListener('visibilitychange',()=>{if(connected&&!document.hidden)syncNow().catch(()=>{})});
+applyBG();
 if(S.vehicles.length&&!cur())S.cur=S.vehicles[0].id;
 renderAll();
 initSync();
