@@ -497,7 +497,7 @@ function renderStrip(){
 }
 
 /* ===== Bản đồ (Mapbox GL JS + Search Box API): cây xăng và showroom ===== */
-const DEF_MBTOKEN='';
+const DEF_MBTOKEN='pk.eyJ1IjoibmFtbmFtOTM5MyIsImEiOiJjbXZ0NHJxbDYwMG9pMnhvbWJhbnc3eGY1In0.j5JGeIQO7ei6zLk6f3t9fQ';
 let MBT=DEF_MBTOKEN;
 if(!MBT){try{MBT=localStorage.getItem('soxe_mbtoken')||''}catch(e){}}
 let map=null,mmarks=[],mlist=[],selPlace=null,mapMode='fuel',meMark=null,myPos=null,watchId=null;
