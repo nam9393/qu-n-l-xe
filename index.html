@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sổ Xe – Quản lý chi phí nuôi xe</title>
+<title>VEO – Lái mượt, Quản lý chuẩn</title>
 <!-- Đặt CLIENT_ID của bạn ở dòng "const CLIENT_ID=" trong phần script. Xem README.md -->
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
@@ -71,7 +71,7 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
 <body>
 <main>
   <div class="top">
-    <div><h1>🚗 Sổ Xe</h1><small id="sync" class="empty" role="status"></small></div>
+    <div><h1>🚗 VEO App</h1><small id="sync" class="empty" role="status"></small></div>
     <div class="row">
       <select id="veh" aria-label="Chọn xe"></select>
       <select id="per" aria-label="Khoảng thời gian">
@@ -86,8 +86,8 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
   <div id="vform" class="card" hidden>
     <h2 id="vh">🚗 Thêm xe</h2>
     <form id="vf">
-      <label class="full">Tên xe<input id="vn" required placeholder="Ví dụ: Honda Vision, Vios 2020"></label>
-      <label>Biển số<input id="vp" placeholder="51F-123.45"></label>
+      <label class="full">Tên xe<input id="vn" required placeholder="Ví dụ: Honda Vision, Mazda CX90"></label>
+      <label>Biển số<input id="vp" placeholder="61K-123.45, 61D1-123.45"></label>
       <label>Số km hiện tại<input id="vo" type="number" min="0" placeholder="0"></label>
       <label>🛢️ Dung tích bình xăng (lít)<input id="vt" type="number" step="0.1" min="0" placeholder="Ví dụ 5.5"></label>
       <label>⛽ Tiêu hao công bố (L/100km)<input id="vc" type="number" step="0.01" min="0" placeholder="Ví dụ 1.9"></label>
