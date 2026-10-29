@@ -19,11 +19,15 @@ App chạy hoàn toàn trên trình duyệt. Dữ liệu lưu trong file ẩn `s
 5. Copy **Client ID** (đuôi `.apps.googleusercontent.com`).
 
 ## Bước 3. Điền Client ID
-Mở `index.html`, tìm dòng
-`const CLIENT_ID='DAN_CLIENT_ID_VAO_DAY.apps.googleusercontent.com';`
-và thay bằng Client ID của bạn. Commit lại lên GitHub.
+Không cần sửa code nữa: mở app, ô "Dán Google Client ID" hiện ra ở mục Quản lý dữ liệu, dán Client ID rồi bấm Lưu. Client ID được nhớ trên từng thiết bị (làm một lần cho mỗi máy). Nếu muốn khỏi dán ở mọi máy, có thể điền thẳng vào dòng `const DEF_CID=` trong `index.html` rồi commit lại.
 
 ## Dùng
 Mở địa chỉ GitHub Pages > bấm "Kết nối Google Drive" > chọn tài khoản > cho phép. Từ đó mỗi lần thêm hoặc xóa khoản, app tự lưu lên Drive; mở trên máy khác và kết nối cùng tài khoản là dữ liệu tự về.
 
 Ghi chú: app ở chế độ Testing nên Google hiện cảnh báo "app chưa được xác minh" (bấm Nâng cao > Tiếp tục), và đăng nhập có thể phải xác nhận lại sau khoảng 7 ngày. Dữ liệu trên Drive không mất.
+
+## Bản đồ chọn cây xăng (Google Maps)
+1. Trong Google Cloud Console (cùng project hoặc project mới), bật **Maps JavaScript API** và **Places API (New)**.
+2. Credentials > Create credentials > **API key**. Mục Application restrictions chọn *Websites*, thêm `https://nam9393.github.io/*`. Mục API restrictions chọn hai API ở trên.
+3. Google yêu cầu gắn tài khoản thanh toán cho Maps, nhưng có hạn mức miễn phí hằng tháng; bạn nên đặt ngân sách cảnh báo (Billing > Budgets) để yên tâm.
+4. Trong app, tab Đổ xăng > "Chọn cây xăng trên bản đồ" > dán key > Lưu. Key được nhớ trên từng thiết bị; nếu muốn dùng chung, điền vào dòng `const DEF_MAPKEY=''` trong `index.html` rồi commit lại. Key web luôn nhìn thấy được trong mã trang, nên phải đặt giới hạn referrer như bước 2.
