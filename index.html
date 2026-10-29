@@ -71,7 +71,7 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
 <body>
 <main>
   <div class="top">
-    <div><h1>🚗 VEO App</h1><small id="sync" class="empty" role="status"></small></div>
+    <div><h1>🚗 Sổ Xe</h1><small id="sync" class="empty" role="status"></small></div>
     <div class="row">
       <select id="veh" aria-label="Chọn xe"></select>
       <select id="per" aria-label="Khoảng thời gian">
@@ -104,7 +104,7 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
     <form id="ef"></form>
     <div id="mapbox" class="card" hidden style="margin:12px 0 0">
       <div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0">🗺️ Chọn cây xăng</h2><button type="button" id="mclose">✖ Đóng</button></div>
-      <div id="mkeybox" class="row" hidden style="margin:6px 0"><input id="mkey" placeholder="Dán Google Maps API key" style="flex:1" aria-label="Google Maps API key"><button type="button" id="mkeysave" class="pri">Lưu</button></div>
+      <div id="mkeybox" class="row" hidden style="margin:6px 0"><input id="mkey" placeholder="Dán Mapbox token công khai (pk.…)" style="flex:1" aria-label="Mapbox token"><button type="button" id="mkeysave" class="pri">Lưu</button></div>
       <p id="mmsg" class="empty" role="status" style="margin:4px 0 6px"></p>
       <div id="mapwrap"><div class="row" style="margin-bottom:6px"><button type="button" id="mfind">🔍 Tìm cây xăng ở khu vực này</button><button type="button" id="mloc">📍 Vị trí của tôi</button></div>
       <div id="map" style="height:300px;border-radius:10px;background:var(--inp)"></div><div id="mlist" style="max-height:220px;overflow:auto;margin-top:6px"></div></div>
@@ -429,21 +429,19 @@ function renderStrip(){
   el.innerHTML=`<div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px"><h2>🏅 Huy chương ${g==='fuel'?'nhiên liệu':'bảo dưỡng'} (${L.filter(m=>m.cur>=m.goal).length}/${L.length})</h2><div class="mgrid">${cards.map(medalCard).join('')}</div></div>`;
 }
 
-/* ===== Bản đồ chọn cây xăng (Google Maps JavaScript API + Places API New) ===== */
-const DEF_MAPKEY='';
-let MAPKEY=DEF_MAPKEY;
-if(!MAPKEY){try{MAPKEY=localStorage.getItem('soxe_mapkey')||''}catch(e){}}
+/* ===== Bản đồ chọn cây xăng (Mapbox GL JS + Search Box API) ===== */
+const DEF_MBTOKEN='pk.eyJ1IjoibmFtbmFtOTM5MyIsImEiOiJjbXZ0NHJxbDYwMG9pMnhvbWJhbnc3eGY1In0.j5JGeIQO7ei6zLk6f3t9fQ';
+let MBT=DEF_MBTOKEN;
+if(!MBT){try{MBT=localStorage.getItem('soxe_mbtoken')||''}catch(e){}}
 let map=null,mmarks=[],mlist=[],selPlace=null;
 const mset=t=>{$('#mmsg').textContent=t};
-window.gm_authFailure=()=>mset('Google Maps từ chối key này. Kiểm tra key, giới hạn referrer, và đã bật Maps JavaScript API cùng Places API (New).');
-function loadMaps(){
+const MBV='v2.15.0',BADTOK='Mapbox từ chối token này. Kiểm tra token công khai (bắt đầu bằng pk.) và giới hạn URL.';
+function loadMB(){
   return new Promise((res,rej)=>{
-    if(window.google&&google.maps&&google.maps.importLibrary)return res();
-    window.__gm=()=>res();
-    const sc=document.createElement('script');
-    sc.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(MAPKEY)+'&loading=async&callback=__gm&language=vi&region=VN';
-    sc.onerror=()=>rej(new Error('load'));
-    document.head.appendChild(sc);
+    if(window.mapboxgl)return res();
+    const l=document.createElement('link');l.rel='stylesheet';l.href='https://api.mapbox.com/mapbox-gl-js/'+MBV+'/mapbox-gl.css';document.head.appendChild(l);
+    const sc=document.createElement('script');sc.src='https://api.mapbox.com/mapbox-gl-js/'+MBV+'/mapbox-gl.js';
+    sc.onload=()=>res();sc.onerror=()=>rej(new Error('load'));document.head.appendChild(sc);
   });
 }
 function lastPlace(){
@@ -462,30 +460,44 @@ function pickPlace(pl){
 async function findStations(){
   mset('Đang tìm cây xăng…');
   try{
-    const lib=await google.maps.importLibrary('places'),c=map.getCenter();
-    const r=await lib.Place.searchNearby({fields:['displayName','formattedAddress','location','id'],locationRestriction:{center:{lat:c.lat(),lng:c.lng()},radius:3000},includedPrimaryTypes:['gas_station'],maxResultCount:20});
-    mmarks.forEach(m=>m.setMap(null));mmarks=[];
-    mlist=(r.places||[]).map(p=>({pid:p.id,name:p.displayName,addr:p.formattedAddress||'',lat:p.location.lat(),lng:p.location.lng()}));
-    mlist.forEach(pl=>{const mk=new google.maps.Marker({map,position:{lat:pl.lat,lng:pl.lng},title:pl.name});mk.addListener('click',()=>pickPlace(pl));mmarks.push(mk)});
+    const c=map.getCenter(),b=map.getBounds();
+    const base='https://api.mapbox.com/search/searchbox/v1/category/gas_station?access_token='+encodeURIComponent(MBT)+'&language=vi&limit=25&proximity='+c.lng+','+c.lat;
+    const bb='&bbox='+[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(',');
+    let r=await fetch(base+bb);
+    if(!r.ok&&r.status!==401&&r.status!==403)r=await fetch(base);
+    if(r.status===401||r.status===403){mset(BADTOK);return}
+    if(!r.ok)throw new Error('http'+r.status);
+    const j=await r.json();
+    mmarks.forEach(m=>m.remove());mmarks=[];
+    mlist=(j.features||[]).map(f=>({pid:f.properties.mapbox_id||'',name:f.properties.name||'Cây xăng',addr:f.properties.full_address||f.properties.address||'',lng:f.geometry.coordinates[0],lat:f.geometry.coordinates[1]}));
+    mlist.forEach(pl=>{
+      const el=document.createElement('div');
+      el.textContent='⛽';el.title=pl.name;el.style.cssText='font-size:24px;cursor:pointer;line-height:1';
+      el.onclick=ev=>{ev.stopPropagation();pickPlace(pl)};
+      mmarks.push(new mapboxgl.Marker({element:el}).setLngLat([pl.lng,pl.lat]).addTo(map));
+    });
     $('#mlist').innerHTML=mlist.map((pl,i)=>`<button type="button" class="lnk" data-mp="${i}" style="display:block;text-align:left;width:100%"><b>⛽ ${esc(pl.name)}</b><br><small>${esc(pl.addr)}</small></button>`).join('');
-    mset(mlist.length?'Tìm thấy '+mlist.length+' cây xăng. Bấm vào chấm đỏ hoặc danh sách để chọn.':'Không có cây xăng nào trong 3 km. Hãy kéo bản đồ sang khu vực khác rồi bấm tìm lại.');
-  }catch(e){mset('Không tìm được cây xăng. Hãy bật Places API (New) cho key này.')}
+    mset(mlist.length?'Tìm thấy '+mlist.length+' cây xăng trong khu vực đang xem. Bấm biểu tượng ⛽ hoặc danh sách để chọn.':'Không có cây xăng nào trong khu vực này. Hãy kéo hoặc thu nhỏ bản đồ rồi bấm tìm lại.');
+  }catch(e){mset('Không tìm được cây xăng. Kiểm tra mạng và token Mapbox.')}
 }
 async function openMap(){
   const box=$('#mapbox');
   box.hidden=false;box.scrollIntoView({behavior:'smooth',block:'nearest'});
-  if(!MAPKEY){$('#mkeybox').hidden=false;$('#mapwrap').hidden=true;mset('Cần Google Maps API key để dùng bản đồ (xem README).');return}
+  if(!MBT){$('#mkeybox').hidden=false;$('#mapwrap').hidden=true;mset('Cần Mapbox token công khai (bắt đầu bằng pk.) để dùng bản đồ. Xem README.');return}
   $('#mkeybox').hidden=true;$('#mapwrap').hidden=false;
   try{
     mset('Đang tải bản đồ…');
-    await loadMaps();
-    const lib=await google.maps.importLibrary('maps');
+    await loadMB();
+    mapboxgl.accessToken=MBT;
     if(!map){
-      const lp=lastPlace();
-      map=new lib.Map($('#map'),{center:lp?{lat:lp.lat,lng:lp.lng}:{lat:10.7769,lng:106.7009},zoom:14,mapTypeControl:false,streetViewControl:false,fullscreenControl:false,clickableIcons:false});
-    }
+      const lp=lastPlace(),dk=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
+      map=new mapboxgl.Map({container:'map',style:'mapbox://styles/mapbox/'+(dk?'dark-v11':'streets-v12'),center:lp?[lp.lng,lp.lat]:[106.7009,10.7769],zoom:14});
+      map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'top-right');
+      map.on('error',e=>{const st=e&&e.error&&e.error.status;if(st===401||st===403)mset(BADTOK)});
+      await new Promise(r=>map.once('load',r));
+    }else map.resize();
     await findStations();
-  }catch(e){mset('Không tải được bản đồ. Kiểm tra mạng và API key.')}
+  }catch(e){mset('Không tải được bản đồ. Kiểm tra mạng và token Mapbox.')}
 }
 $('#mapbox').onclick=e=>{
   const t=e.target,id=t.id;
@@ -493,10 +505,16 @@ $('#mapbox').onclick=e=>{
   if(id==='mfind'){if(map)findStations();return}
   if(id==='mloc'){
     if(!navigator.geolocation||!map){mset('Thiết bị không cho lấy vị trí.');return}
-    navigator.geolocation.getCurrentPosition(p=>{map.setCenter({lat:p.coords.latitude,lng:p.coords.longitude});map.setZoom(15);findStations()},()=>mset('Không lấy được vị trí. Hãy cho phép truy cập vị trí hoặc kéo bản đồ.'));
+    navigator.geolocation.getCurrentPosition(p=>{map.once('moveend',findStations);map.flyTo({center:[p.coords.longitude,p.coords.latitude],zoom:15})},()=>mset('Không lấy được vị trí. Hãy cho phép truy cập vị trí hoặc kéo bản đồ.'));
     return;
   }
-  if(id==='mkeysave'){const k=$('#mkey').value.trim();if(k.length<20){mset('Key chưa đúng.');return}MAPKEY=k;try{localStorage.setItem('soxe_mapkey',k)}catch(x){}openMap();return}
+  if(id==='mkeysave'){
+    const k=$('#mkey').value.trim();
+    if(k.indexOf('sk.')===0){mset('Đây là token bí mật (sk.). Không dùng ở đây. Hãy dùng token công khai bắt đầu bằng pk.');return}
+    if(k.indexOf('pk.')!==0||k.length<30){mset('Token chưa đúng. Token công khai bắt đầu bằng pk.');return}
+    MBT=k;try{localStorage.setItem('soxe_mbtoken',k)}catch(x){}
+    openMap();return;
+  }
   const b=t.closest('[data-mp]');
   if(b)pickPlace(mlist[+b.dataset.mp]);
 };
