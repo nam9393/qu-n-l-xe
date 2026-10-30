@@ -86,6 +86,34 @@ details.fold>summary::after{content:"▾";float:right;color:var(--mut)}
 details.fold[open]>summary{margin-bottom:10px}
 details.fold[open]>summary::after{content:"▴"}
 details.mg>summary{font-size:14px}
+details.fold>summary{padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--inp);transition:box-shadow .15s}
+details.fold>summary h2{font-size:17px}
+details.fold>summary::after{content:"▾";float:right;width:30px;height:30px;line-height:30px;text-align:center;border-radius:50%;background:var(--acc);color:var(--accT);font-size:16px;margin:-3px 0}
+details.fold[open]>summary::after{content:"▴"}
+details.yr>summary,details.mg>summary{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;list-style:none;cursor:pointer;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--inp);transition:box-shadow .15s}
+details.yr>summary::-webkit-details-marker,details.mg>summary::-webkit-details-marker{display:none}
+details.yr>summary::after,details.mg>summary::after{content:"▾";order:2;margin-left:auto;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:var(--acc);color:var(--accT);font-size:13px}
+details.yr[open]>summary::after,details.mg[open]>summary::after{content:"▴"}
+details.yr{margin-top:8px}details.yr>details.mg{margin-left:10px}
+details.yr>summary .st{order:0;font-weight:700}details.mg>summary .st{order:0;font-weight:700}
+.sm{order:1;font-size:13px}.ch2{order:3;flex-basis:100%;font-size:12px}.ch{display:inline-block;margin-right:10px;font-weight:700}
+.tabs{padding:10px 4px 6px;margin-top:-4px}
+.tabs button{position:relative;transition:box-shadow .15s,transform .15s,filter .15s}
+.tabs button[aria-pressed=true]{box-shadow:0 0 10px 1px var(--acc)}
+@media(hover:hover){
+.tabs button:not(:disabled):hover{box-shadow:0 0 0 2px var(--acc),0 0 16px 3px var(--acc);transform:translateY(-2px);filter:brightness(1.1)}
+details.fold>summary:hover,details.yr>summary:hover,details.mg>summary:hover{box-shadow:0 0 0 2px var(--acc),0 0 14px 2px var(--acc)}
+}
+.brake{animation:brk .55s cubic-bezier(.2,.8,.2,1)}
+.brake::before{content:"";position:absolute;left:-8px;right:-8px;bottom:-5px;height:3px;background:repeating-linear-gradient(90deg,#222 0 8px,transparent 8px 12px);opacity:.75;animation:mark .7s ease-out forwards;pointer-events:none}
+.brake::after{content:"🛞";position:absolute;left:-9px;top:-11px;font-size:15px;animation:wheel .55s ease-out;pointer-events:none}
+@keyframes brk{0%{transform:translateX(-10px) skewX(-8deg)}35%{transform:translateX(5px) skewX(5deg)}60%{transform:translateX(-2px)}100%{transform:none}}
+@keyframes mark{0%{transform:scaleX(0);transform-origin:left}60%{transform:scaleX(1)}100%{opacity:0}}
+@keyframes wheel{0%{transform:rotate(0)}100%{transform:rotate(900deg)}}
+.smokebox{position:fixed;z-index:60;pointer-events:none;width:0;height:0}
+.smk{position:absolute;left:var(--x);top:0;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle,rgba(185,185,185,.9),rgba(185,185,185,0) 70%);opacity:0;animation:smoke 1.1s ease-out forwards}
+@keyframes smoke{0%{opacity:.9;transform:translate(0,0) scale(.4)}100%{opacity:0;transform:translate(var(--dx),-38px) scale(var(--s))}}
+@media(prefers-reduced-motion:reduce){.brake,.brake::before,.brake::after,.smk{animation:none}}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
 .med{border:1px solid var(--acc);border-radius:10px;padding:8px 6px;text-align:center;background:var(--inp);font-size:12px;line-height:1.3}
 .med .i{font-size:28px;line-height:1.2}
@@ -113,6 +141,7 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
         <option value="year">Năm nay</option>
         <option value="all">Tất cả</option>
       </select>
+<button type="button" id="snd" aria-label="Âm thanh" title="Tắt âm thanh">🔊</button>
     </div>
   </div>
 
@@ -146,7 +175,6 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
       <div id="map" style="height:300px;border-radius:10px;background:var(--inp)"></div><div id="mlist" style="max-height:220px;overflow:auto;margin-top:6px"></div></div>
     </div>
     <div id="parts"></div>
-    <div id="medstrip"></div>
   </div>
 
   <details class="card fold" id="hd"><summary><h2>🕘 Lịch sử</h2></summary><div class="tabs" id="hf"></div><div id="list"></div></details>
@@ -191,6 +219,7 @@ const uid=()=>Math.random().toString(36).slice(2,10);
 const money=n=>Math.round(n).toLocaleString('vi-VN')+'VNĐ';
 const num=n=>Math.round(n*10)/10;
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const FUELT={e10:['E10 RON95','E10'],e5:['E5 RON92','E5'],ron95:['RON95 khoáng','RON95'],other:['Loại khác','Khác']};
 const TYPES={fuel:['Đổ xăng','--fuel','⛽'],service:['Bảo dưỡng','--svc','🔧'],other:['Chi phí khác','--oth','🧾'],income:['Thu nhập','--in','💰']};
 const openM=new Set();
 let tab='fuel',per='month',armed=false,hist='all',editId=null,editV=false;
@@ -314,6 +343,7 @@ function renderDash(){
     </div>
   </div>
   ${alerts}${freshMedals()}
+  ${fuelTotals(s)}
   ${report()}
   <div class="card"><h2>📊 Báo cáo thu chi</h2>${chart()}</div>
   ${medalsDash()}`;
@@ -323,20 +353,22 @@ function renderDash(){
   const all=S.entries.filter(e=>e.v===S.cur&&(hist==='all'||e.type===hist)).sort((a,b)=>b.date.localeCompare(a.date)||b.odo-a.odo);
   const row=e=>{
     const T=TYPES[e.type],isIn=e.type==='income';
-    const sub=[e.date.split('-').reverse().join('/'),e.odo?e.odo.toLocaleString('vi-VN')+' km':'',e.type==='fuel'&&e.liters?num(e.liters)+' L'+(e.price?' · '+money(e.price)+'/L':'')+(e.full?' · đầy bình':'')+(LV.tank&&LV.m&&LV.m[e.id]&&LV.m[e.id].after!==null?' · sau đổ ~'+Math.round(LV.m[e.id].after/LV.tank*100)+'%':''):'',e.place?'📍 '+esc(e.place.name):''].filter(Boolean).join(' · ');
+    const sub=[e.date.split('-').reverse().join('/'),e.odo?e.odo.toLocaleString('vi-VN')+' km':'',e.type==='fuel'&&e.liters?num(e.liters)+' L'+(e.price?' · '+money(e.price)+'/L':'')+(e.ft&&FUELT[e.ft]?' · '+FUELT[e.ft][1]:'')+(e.full?' · đầy bình':'')+(LV.tank&&LV.m&&LV.m[e.id]&&LV.m[e.id].after!==null?' · sau đổ ~'+Math.round(LV.m[e.id].after/LV.tank*100)+'%':''):'',e.place?'📍 '+esc(e.place.name):''].filter(Boolean).join(' · ');
     return `<div class="item"><span class="tag" style="background:var(${T[1]})"></span>
       <div class="t"><b>${T[2]} ${esc(e.note||T[0])}</b><small>${T[0]} · ${sub}</small></div>
-      <span class="amt ${isIn?'in':'out'}">${isIn?'+':'−'}${money(e.amount)}</span>
+      <span class="amt" style="color:var(${T[1]})">${isIn?'+':'−'}${money(e.amount)}</span>
       <button class="lnk" data-edit="${e.id}" aria-label="Sửa khoản này">Sửa</button>
       <button class="lnk" data-del="${e.id}" aria-label="Xóa khoản này">Xóa</button></div>`;
   };
-  const mon={};
-  all.forEach(e=>{const k=e.date.slice(0,7);(mon[k]=mon[k]||[]).push(e)});
-  const ks=Object.keys(mon).sort().reverse();
-  $('#list').innerHTML=ks.length?ks.map(k=>{
-    const a=mon[k],ex=sm(a.filter(e=>e.type!=='income'),e=>e.amount),inn=sm(a.filter(e=>e.type==='income'),e=>e.amount);
-    return `<details class="mg" data-m="${k}"${openM.has(k)?' open':''}><summary>📅 Tháng ${k.slice(5)}/${k.slice(0,4)} · ${a.length} khoản${ex?' · <span class="out">−'+money(ex)+'</span>':''}${inn?' · <span class="in">+'+money(inn)+'</span>':''}</summary>${a.map(row).join('')}</details>`;
-  }).join(''):'<div class="empty">Chưa có khoản nào.</div>';
+  const yrs={};
+  all.forEach(e=>{const y=e.date.slice(0,4),m=e.date.slice(0,7);yrs[y]=yrs[y]||{};(yrs[y][m]=yrs[y][m]||[]).push(e)});
+  const chips=a=>['fuel','service','other','income'].map(t=>{const c=sm(a.filter(e=>e.type===t),e=>e.amount);return c?`<span class="ch" style="color:var(${TYPES[t][1]})">${TYPES[t][2]} ${t==='income'?'+':''}${money(c)}</span>`:''}).join('');
+  const tot=a=>{const ex=sm(a.filter(e=>e.type!=='income'),e=>e.amount),inn=sm(a.filter(e=>e.type==='income'),e=>e.amount);return '<b>−'+money(ex)+'</b>'+(inn?' <b class="in">+'+money(inn)+'</b>':'')};
+  const sum_=(t,a)=>`<span class="st">${t}</span><span class="sm">${a.length} khoản · ${tot(a)}</span><span class="ch2">${chips(a)}</span>`;
+  $('#list').innerHTML=Object.keys(yrs).sort().reverse().map(y=>{
+    const ms=yrs[y],ya=[].concat(...Object.keys(ms).map(k=>ms[k]));
+    return `<details class="yr" data-k="Y${y}"${openM.has('Y'+y)?' open':''}><summary>${sum_('📆 Năm '+y,ya)}</summary>${Object.keys(ms).sort().reverse().map(k=>`<details class="mg" data-k="${k}"${openM.has(k)?' open':''}><summary>${sum_('📅 Tháng '+k.slice(5)+'/'+y,ms[k])}</summary>${ms[k].map(row).join('')}</details>`).join('')}</details>`;
+  }).join('')||'<div class="empty">Chưa có khoản nào.</div>';
   renderGauge();renderParts();renderStrip();
 }
 
@@ -406,7 +438,7 @@ $('#parts').onsubmit=e=>{
 };
 $('#dash').onclick=e=>{
   const t=e.target,c=t.closest('[data-ct]');
-  if(c){ct=c.dataset.ct;renderDash();return}
+  if(c){ct=c.dataset.ct;renderDash();skid($('#dash [data-ct="'+ct+'"]'));return}
   if(t.id==='mseen'){try{localStorage.setItem('soxe_seen',JSON.stringify(medals().filter(m=>m.cur>=m.goal).map(m=>m.fam+m.goal)))}catch(x){}renderDash()}
 };
 $('#dash').onchange=e=>{
@@ -504,16 +536,7 @@ function medalsDash(){
     const a=L.filter(m=>m.g===x[0]).sort((p,q)=>(q.cur>=q.goal)-(p.cur>=p.goal));
     return `<details class="mg"><summary>${x[1]} · ${a.filter(m=>m.cur>=m.goal).length}/${a.length}</summary><div class="mgrid">${a.map(medalCard).join('')}</div></details>`}).join('')}</div>`;
 }
-function renderStrip(){
-  const el=$('#medstrip');
-  if(!el)return;
-  const g=tab==='service'?'service':null;
-  if(!g||!cur()){el.innerHTML='';return}
-  const L=medals().filter(m=>m.g===g),fam={};
-  L.forEach(m=>{(fam[m.fam]=fam[m.fam]||[]).push(m)});
-  const cards=Object.keys(fam).map(k=>fam[k].find(m=>m.cur<m.goal)||fam[k][fam[k].length-1]);
-  el.innerHTML=`<div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px"><h2>🏅 Huy chương ${g==='fuel'?'nhiên liệu':'bảo dưỡng'} (${L.filter(m=>m.cur>=m.goal).length}/${L.length})</h2><div class="mgrid">${cards.map(medalCard).join('')}</div></div>`;
-}
+function renderStrip(){}
 
 /* ===== Bản đồ (Mapbox GL JS + Search Box API): cây xăng và showroom ===== */
 const DEF_MBTOKEN='pk.eyJ1IjoibmFtbmFtOTM5MyIsImEiOiJjbXZ0NHJxbDYwMG9pMnhvbWJhbnc3eGY1In0.j5JGeIQO7ei6zLk6f3t9fQ';
@@ -605,7 +628,7 @@ async function openMap(mode){
   mapMode=mode||'fuel';
   const dl=mapMode==='dealer',box=$('#mapbox');
   box.hidden=false;box.scrollIntoView({behavior:'smooth',block:'nearest'});
-  $('#mtitle').textContent=dl?'🏬 Showroom / xưởng dịch vụ':'🗺️ Chọn showroom';
+  $('#mtitle').textContent=dl?'🏬 Showroom / xưởng dịch vụ':'🗺️ Chọn cây xăng';
   $('#mbrandbox').hidden=!dl;
   if(dl){const v=cur();if(!$('#mbrand').value)$('#mbrand').value=v&&v.brand||''}
   if(!MBT){$('#mkeybox').hidden=false;$('#mapwrap').hidden=true;mset('Cần Mapbox token công khai (bắt đầu bằng pk.) để dùng bản đồ. Xem README.');return}
@@ -754,6 +777,35 @@ function renderGauge(){
   el.innerHTML=h;
 }
 
+function fuelTotals(s){
+  const v=cur(),fs=s.per_.filter(e=>e.type==='fuel'),L=sm(fs,e=>e.liters||0),M=sm(fs,e=>e.amount);
+  const lab={month:'tháng này','90':'90 ngày qua',year:'năm nay',all:'từ trước đến giờ'}[per]||'';
+  const J=[
+   [0,'Chưa đổ giọt nào trong khoảng này. Xe đang ăn chay trường hay bạn đang đi bộ thể dục vậy?'],
+   [1,'Mới nhấp môi thôi, xe còn đang khai vị. Chưa đủ để gọi là "bữa chính".'],
+   [10,'Cỡ một can nước suối to đùng. Xe mới làm quen vị thôi, chưa tập bơi nổi đâu.'],
+   [40,'Đủ đầy hai chậu giặt đồ cỡ lớn. Ngâm chân thì dư sức, nhưng là ngâm nước nhé, xăng thì không!'],
+   [100,'Gần đầy một bồn tắm rồi đó. Số lít này mà là nước thì tập bơi ếch được, còn xăng thì đừng thử, nguy hiểm lắm! 🏊'],
+   [200,'Hơn một bồn tắm, ngang lượng nước một chú voi uống mỗi ngày. Xe nhà bạn ăn khỏe như voi, nuôi cẩn thận kẻo béo ú! 🐘'],
+   [500,'Chừng 25 bình nước 20 lít. Chú cá vàng cũng bơi sải được trong chừng này nước, còn xe bạn thì nuôi béo múp rồi, nhớ cho nó đi dạo thường xuyên!'],
+   [1000,'Tròn một mét khối, đủ đổ đầy một bể bơi phao cho cả nhà. Nhớ đổ nước, đừng đổ xăng nha! Xe bạn nuôi tới mức này thì đúng chuẩn "đại gia nuôi béo" 😄'],
+   [3000,'Ngang một bể bơi mini sân vườn. Bạn có thể mở lớp dạy bơi (bằng nước), còn xe thì xứng danh "chiến thần nuốt xăng".'],
+   [10000,'Cỡ một bể bơi khu chung cư. Uống kiểu này thì cây xăng nên tặng bạn thẻ VIP đó!']
+  ];
+  let j=J[0][1];J.forEach(x=>{if(L>=x[0])j=x[1]});
+  let q='';
+  if(v&&+v.cons&&s.cons){
+    const df=Math.round((s.cons/v.cons-1)*100);
+    if(df>=30)q='Xe ăn khỏe hơn mức công bố tới '+df+'%. Kiểu này là nuôi béo thật rồi, kiểm tra lốp, lọc gió và nhớt thử xem.';
+    else if(df<=-5)q='Xe ăn ít hơn mức công bố '+(-df)+'%. Ăn kiêng thành công, đáng khen! 👏';
+  }
+  const k=(a,b)=>`<div class="kpi"><small>${a}</small><b>${b}</b></div>`;
+  return `<div class="card"><h2>⛽ Tổng nhiên liệu <small style="color:var(--mut);font-weight:400">(${lab})</small></h2>
+    <div class="stats" style="margin-top:0;grid-template-columns:repeat(3,1fr)">${k('🛢️ Tổng số lít',num(L).toLocaleString('vi-VN')+' L')}${k('💵 Tiền xăng',money(M))}${k('🏷️ Giá TB / lít',L?money(M/L):'–')}</div>
+    <p class="sec">${j}</p>${q?`<p class="sec">${q}</p>`:''}
+    ${s.tot&&M?`<p class="empty" style="margin:6px 0 0;font-size:12px">Tiền xăng chiếm ${Math.round(M/s.tot*100)}% tổng chi ${lab}.</p>`:''}</div>`;
+}
+
 function report(){
   const v=cur();
   const fl=S.entries.filter(e=>e.v===S.cur&&e.type==='fuel'&&e.odo).sort((a,b)=>a.odo-b.odo);
@@ -765,7 +817,8 @@ function report(){
     const a=fulls[i-1],b=fulls[i],km=b.odo-a.odo;
     if(km<=0)continue;
     const fs=fl.filter(e=>e.odo>a.odo&&e.odo<=b.odo);
-    ints.push({km,lit:sm(fs,e=>e.liters||0),amt:sm(fs,e=>e.amount)});
+    const ts=Array.from(new Set(fs.map(e=>e.ft||'')));
+    ints.push({km,lit:sm(fs,e=>e.liters||0),amt:sm(fs,e=>e.amount),ft:ts.length===1&&ts[0]?ts[0]:''});
   }
   if(!ints.length||!sm(ints,i=>i.lit))return H+'<p class="empty" style="margin:0">Số km các lần đổ đầy chưa tăng dần hoặc thiếu số lít. Hãy kiểm tra lại dữ liệu đã nhập.</p></div>';
   const tk=sm(ints,i=>i.km),tl=sm(ints,i=>i.lit),ta=sm(ints,i=>i.amt);
@@ -788,6 +841,10 @@ function report(){
   let off='';
   if(+v.cons){const df=Math.round((avgC/v.cons-1)*100);off+=`<p class="sec">So với mức công bố ${num(+v.cons)} L/100km: thực tế của bạn ${df<=-3?'<b>tiết kiệm hơn '+(-df)+'%</b>':df>=3?'<b>hao hơn '+df+'%</b>':'<b>xấp xỉ</b>'} so với công bố.</p>`}
   if(+v.tank)off+=`<p class="sec">Mỗi bình đầy (${num(+v.tank)} L) đi được khoảng <b>${Math.round(v.tank/avgC*100).toLocaleString('vi-VN')} km</b> theo mức tiêu hao thực tế.</p>`;
+  const bt={};
+  ints.forEach(i=>{if(i.ft){const o=bt[i.ft]=bt[i.ft]||{km:0,lit:0,n:0};o.km+=i.km;o.lit+=i.lit;o.n++}});
+  const bk=Object.keys(bt);
+  if(bk.length>=2)off+=`<p class="sec">⛽ So sánh theo loại xăng: ${bk.map(t=>`<b>${FUELT[t][1]}</b> ${num(bt[t].lit/bt[t].km*100)} L/100km (${bt[t].n} lần)`).join(' · ')}. Xăng E10 ít năng lượng hơn xăng khoáng nên thường hao hơn khoảng 1–3%; chênh lệch nhỏ như vậy thường lẫn trong cách chạy xe.</p>`;
   const k=(a,b)=>`<div class="kpi"><small>${a}</small><b>${b}</b></div>`;
   return H+`<div class="stats" style="margin-top:0">
     ${k('🛣️ Trung bình',num(tk/tl)+' km/lít')}${k('⛽ Tiêu hao',num(avgC)+' L/100km')}
@@ -798,6 +855,14 @@ function report(){
     <p class="empty" style="margin:6px 0 0;font-size:12px">Dự đoán dựa trên 3 lần đổ đầy gần nhất, chính xác hơn khi có nhiều dữ liệu.</p></div>`;
 }
 
+function lastFT(){
+  const a=S.entries.filter(e=>e.type==='fuel'&&e.ft).sort((x,y)=>x.date.localeCompare(y.date));
+  return a.length?a[a.length-1].ft:(today()>='2026-06-01'?'e10':'');
+}
+function ftSel(x,ed){
+  const cur_=ed?(x.ft||''):lastFT();
+  return `<label class="full">⛽ Loại xăng (tùy chọn, ảnh hưởng nhẹ đến mức tiêu hao)<select id="f_ft"><option value="">Không ghi</option>${Object.keys(FUELT).map(k=>`<option value="${k}"${k===cur_?' selected':''}>${FUELT[k][0]}</option>`).join('')}</select></label>`;
+}
 function renderForm(ed){
   editId=ed?ed.id:null;
   selPlace=ed?(ed.place||null):null;
@@ -813,7 +878,7 @@ function renderForm(ed){
   let h='';
   if(tab==='fuel')h=d+odo(true)+mny('f_p','🏷️ Giá mỗi lít (VNĐ)',x.price)+mny('f_amt','💵 Tổng tiền đã trả (VNĐ)',x.amount)
     +`<label>🛢️ Số lít (tự tính)<input id="f_l" type="number" step="0.01" min="0" required value="${x.liters||''}"></label>
-    <label class="chk"><input id="f_full" type="checkbox" ${(ed?x.full:true)?'checked':''}> ⛽ Đổ đầy bình</label>`+'<div class="full" id="placebox"></div>';
+    <label class="chk"><input id="f_full" type="checkbox" ${(ed?x.full:true)?'checked':''}> ⛽ Đổ đầy bình</label>`+ftSel(x,ed)+'<div class="full" id="placebox"></div>';
   else if(tab==='service')h=d+odo(false)+note('Thay nhớt, lốp, má phanh…',true)+partSel(x)+mny('f_amt','💵 Chi phí (VNĐ)',x.amount,true)+'<div class="full" id="placebox"></div>';
   else if(tab==='other')h=d+odo(false)+note('Gửi xe, phí cầu đường, bảo hiểm, rửa xe…',true)+mny('f_amt','💵 Số tiền (VNĐ)',x.amount,true);
   else h=d+odo(false)+note('Chạy xe công nghệ, chở hàng, cho thuê…',true)+mny('f_amt','💵 Số tiền (VNĐ)',x.amount,true);
@@ -821,9 +886,48 @@ function renderForm(ed){
   renderPlace();renderGauge();renderParts();renderStrip();
 }
 
+/* ===== Hiệu ứng thắng xe khi chọn tab ===== */
+let sndOn=true,actx=null;
+try{sndOn=localStorage.getItem('soxe_snd')!=='0'}catch(e){}
+function skidSound(){
+  if(!sndOn)return;
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    actx=actx||new AC();
+    if(actx.state==='suspended')actx.resume();
+    const t=actx.currentTime,dur=.55,n=Math.floor(actx.sampleRate*dur),buf=actx.createBuffer(1,n,actx.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+    const src=actx.createBufferSource();src.buffer=buf;
+    const bp=actx.createBiquadFilter();bp.type='bandpass';bp.Q.value=7;
+    bp.frequency.setValueAtTime(2800,t);bp.frequency.exponentialRampToValueAtTime(850,t+dur);
+    const g=actx.createGain();
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.16,t+.05);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    src.connect(bp);bp.connect(g);g.connect(actx.destination);src.start(t);
+  }catch(e){}
+}
+function skid(btn){
+  skidSound();
+  if(!btn||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))return;
+  const r=btn.getBoundingClientRect();
+  btn.classList.remove('brake');void btn.offsetWidth;btn.classList.add('brake');
+  setTimeout(()=>btn.classList.remove('brake'),800);
+  const box=document.createElement('div');box.className='smokebox';
+  box.style.cssText='left:'+(r.left+8)+'px;top:'+(r.bottom-4)+'px';
+  for(let i=0;i<8;i++){
+    const q=document.createElement('i');q.className='smk';
+    q.style.cssText='--x:'+Math.random()*Math.max(20,r.width-24)+'px;--dx:'+(Math.random()-.5)*40+'px;--s:'+(.8+Math.random()*1.2)+';animation-delay:'+i*.05+'s';
+    box.appendChild(q);
+  }
+  document.body.appendChild(box);setTimeout(()=>box.remove(),1500);
+}
+const sndBtn=()=>{$('#snd').textContent=sndOn?'🔊':'🔇';$('#snd').title=sndOn?'Tắt âm thanh':'Bật âm thanh'};
+$('#snd').onclick=()=>{sndOn=!sndOn;try{localStorage.setItem('soxe_snd',sndOn?'1':'0')}catch(e){}sndBtn();if(sndOn)skid($('#snd'))};
+sndBtn();
+
 function renderAll(){renderVeh();renderDash();renderForm()}
 
-$('#tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(b){tab=b.dataset.tab;renderForm()}};
+$('#tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(b){tab=b.dataset.tab;renderForm();skid($('#tabs [data-tab="'+tab+'"]'))}};
 $('#ef').oninput=e=>{
   const t=e.target;
   if(t.classList.contains('mny')){const dg=t.value.replace(/\D/g,'');t.value=dg?(+dg).toLocaleString('vi-VN'):''}
@@ -838,15 +942,15 @@ $('#ef').onclick=e=>{
   else if(id==='mapopen')openMap(tab==='service'?'dealer':'fuel');
   else if(id==='plclear'){selPlace=null;renderPlace()}
 };
-$('#list').addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.m){if(d.open)openM.add(d.dataset.m);else openM.delete(d.dataset.m)}},true);
-$('#hf').onclick=e=>{const b=e.target.closest('[data-hf]');if(b){hist=b.dataset.hf;renderDash()}};
+$('#list').addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k){if(d.open)openM.add(d.dataset.k);else openM.delete(d.dataset.k)}},true);
+$('#hf').onclick=e=>{const b=e.target.closest('[data-hf]');if(b){hist=b.dataset.hf;renderDash();skid($('#hf [data-hf="'+hist+'"]'))}};
 $('#ef').onsubmit=e=>{
   e.preventDefault();
   const g=id=>{const el=$('#'+id);return el?el.value:''};
   const old=editId?S.entries.find(x=>x.id===editId):null;
   const en={id:old?old.id:uid(),v:old?old.v:S.cur,type:tab,date:g('f_date'),odo:+g('f_odo')||0,note:$('#f_note')?g('f_note').trim():(old?old.note||'':''),amount:pn('f_amt'),u:Date.now()};
   if(!(en.amount>0))return;
-  if(tab==='fuel'){en.liters=+g('f_l');en.price=pn('f_p');en.full=$('#f_full').checked;if(selPlace)en.place=selPlace}
+  if(tab==='fuel'){en.liters=+g('f_l');en.price=pn('f_p');en.full=$('#f_full').checked;en.ft=g('f_ft')||'';if(selPlace)en.place=selPlace}
   if(tab==='service'){en.part=g('f_part')||'';if(selPlace)en.place=selPlace}
   if(old)S.entries[S.entries.indexOf(old)]=en;else S.entries.push(en);
   const v=S.vehicles.find(x=>x.id===en.v);
