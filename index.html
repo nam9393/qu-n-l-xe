@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>VEO – Lái mượt, Quản lý chuẩn</title>
+<title>Veo App - Lái mượt, Quản lý chuẩn</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b6b5d">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <!-- Đặt CLIENT_ID của bạn ở dòng "const CLIENT_ID=" trong phần script. Xem README.md -->
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
@@ -75,6 +79,13 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;background:var(--bg);op
 .burst i{position:absolute;left:50%;top:38%;font-style:normal;opacity:0;animation:fly 1.9s ease-out forwards}
 @keyframes fly{0%{transform:translate(0,0) scale(.3);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.4) rotate(220deg);opacity:0}}
 @media(prefers-reduced-motion:reduce){.med.ok,.med.ok::after,.med .sp,.med.fresh,.med.fresh .i,.me-pin .pulse{animation:none}.med .sp{opacity:.8}}
+details.fold>summary{cursor:pointer;list-style:none}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary h2{display:inline;margin:0}
+details.fold>summary::after{content:"▾";float:right;color:var(--mut)}
+details.fold[open]>summary{margin-bottom:10px}
+details.fold[open]>summary::after{content:"▴"}
+details.mg>summary{font-size:14px}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
 .med{border:1px solid var(--acc);border-radius:10px;padding:8px 6px;text-align:center;background:var(--inp);font-size:12px;line-height:1.3}
 .med .i{font-size:28px;line-height:1.2}
@@ -138,18 +149,18 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
     <div id="medstrip"></div>
   </div>
 
-  <div class="card"><h2>🕘 Lịch sử</h2><div class="tabs" id="hf"></div><div id="list"></div></div>
+  <details class="card fold" id="hd"><summary><h2>🕘 Lịch sử</h2></summary><div class="tabs" id="hf"></div><div id="list"></div></details>
 
-  <div class="card">
-    <h2>🎨 Giao diện nền</h2>
+  <details class="card fold">
+    <summary><h2>🎨 Giao diện nền</h2></summary>
     <div id="bgs" class="mgrid"></div>
     <div class="row" style="margin:8px 0"><button type="button" id="bgup">🖼️ Chọn ảnh của bạn</button><button type="button" id="bgoff">Bỏ nền</button><input id="bgfile" type="file" accept="image/*" hidden></div>
     <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--mut)">Độ mờ lớp phủ<input id="bgop" type="range" min="0" max="90" value="35" style="flex:1"></label>
     <p id="bgmsg" class="empty" role="status" style="margin:6px 0 0">Nền chỉ lưu trên thiết bị này.</p>
-  </div>
+  </details>
 
-  <div class="card">
-    <h2>☁️ Quản lý dữ liệu</h2>
+  <details class="card fold">
+    <summary><h2>☁️ Quản lý dữ liệu</h2></summary>
     <div class="row" style="margin-bottom:8px">
       <button id="addv">🚗 Thêm xe khác</button>
       <button id="editv">✏️ Sửa xe này</button>
@@ -167,7 +178,7 @@ svg text{fill:var(--mut);font-size:10px;font-family:inherit}
       <textarea id="bk" placeholder="Dữ liệu hiện ra ở đây. Dán dữ liệu sao lưu cũ vào để khôi phục." aria-label="Dữ liệu sao lưu"></textarea>
       <div class="row" style="margin-top:6px"><button id="exp2">Hiện dữ liệu</button><button id="imp2">Khôi phục từ ô</button></div>
     </details>
-  </div>
+  </details>
 </main>
 
 <script>
@@ -181,6 +192,7 @@ const money=n=>Math.round(n).toLocaleString('vi-VN')+'VNĐ';
 const num=n=>Math.round(n*10)/10;
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const TYPES={fuel:['Đổ xăng','--fuel','⛽'],service:['Bảo dưỡng','--svc','🔧'],other:['Chi phí khác','--oth','🧾'],income:['Thu nhập','--in','💰']};
+const openM=new Set();
 let tab='fuel',per='month',armed=false,hist='all',editId=null,editV=false;
 const sm=(a,f)=>a.reduce((t,x)=>t+f(x),0);
 const pn=id=>+((($('#'+id)||{}).value||'').replace(/\D/g,''))||0;
@@ -307,17 +319,24 @@ function renderDash(){
   ${medalsDash()}`;
   const hf=['all'].concat(Object.keys(TYPES));
   $('#hf').innerHTML=hf.map(k=>`<button type="button" data-hf="${k}" aria-pressed="${k===hist}">${k==='all'?'📋 Tất cả':TYPES[k][2]+' '+TYPES[k][0]}</button>`).join('');
-  const items=s.per_.filter(e=>hist==='all'||e.type===hist).sort((a,b)=>b.date.localeCompare(a.date)||b.odo-a.odo);
   const LV=levels(S.cur);
-  const head=hist==='all'||!items.length?'':`<p class="empty" style="margin:0 0 4px">${items.length} khoản · Tổng ${money(sm(items,e=>e.amount))}</p>`;
-  $('#list').innerHTML=items.length?head+items.map(e=>{
+  const all=S.entries.filter(e=>e.v===S.cur&&(hist==='all'||e.type===hist)).sort((a,b)=>b.date.localeCompare(a.date)||b.odo-a.odo);
+  const row=e=>{
     const T=TYPES[e.type],isIn=e.type==='income';
     const sub=[e.date.split('-').reverse().join('/'),e.odo?e.odo.toLocaleString('vi-VN')+' km':'',e.type==='fuel'&&e.liters?num(e.liters)+' L'+(e.price?' · '+money(e.price)+'/L':'')+(e.full?' · đầy bình':'')+(LV.tank&&LV.m&&LV.m[e.id]&&LV.m[e.id].after!==null?' · sau đổ ~'+Math.round(LV.m[e.id].after/LV.tank*100)+'%':''):'',e.place?'📍 '+esc(e.place.name):''].filter(Boolean).join(' · ');
     return `<div class="item"><span class="tag" style="background:var(${T[1]})"></span>
       <div class="t"><b>${T[2]} ${esc(e.note||T[0])}</b><small>${T[0]} · ${sub}</small></div>
       <span class="amt ${isIn?'in':'out'}">${isIn?'+':'−'}${money(e.amount)}</span>
       <button class="lnk" data-edit="${e.id}" aria-label="Sửa khoản này">Sửa</button>
-      <button class="lnk" data-del="${e.id}" aria-label="Xóa khoản này">Xóa</button></div>`}).join(''):'<div class="empty">Chưa có khoản nào trong khoảng thời gian và loại này.</div>';
+      <button class="lnk" data-del="${e.id}" aria-label="Xóa khoản này">Xóa</button></div>`;
+  };
+  const mon={};
+  all.forEach(e=>{const k=e.date.slice(0,7);(mon[k]=mon[k]||[]).push(e)});
+  const ks=Object.keys(mon).sort().reverse();
+  $('#list').innerHTML=ks.length?ks.map(k=>{
+    const a=mon[k],ex=sm(a.filter(e=>e.type!=='income'),e=>e.amount),inn=sm(a.filter(e=>e.type==='income'),e=>e.amount);
+    return `<details class="mg" data-m="${k}"${openM.has(k)?' open':''}><summary>📅 Tháng ${k.slice(5)}/${k.slice(0,4)} · ${a.length} khoản${ex?' · <span class="out">−'+money(ex)+'</span>':''}${inn?' · <span class="in">+'+money(inn)+'</span>':''}</summary>${a.map(row).join('')}</details>`;
+  }).join(''):'<div class="empty">Chưa có khoản nào.</div>';
   renderGauge();renderParts();renderStrip();
 }
 
@@ -488,7 +507,7 @@ function medalsDash(){
 function renderStrip(){
   const el=$('#medstrip');
   if(!el)return;
-  const g=tab==='fuel'?'fuel':tab==='service'?'service':null;
+  const g=tab==='service'?'service':null;
   if(!g||!cur()){el.innerHTML='';return}
   const L=medals().filter(m=>m.g===g),fam={};
   L.forEach(m=>{(fam[m.fam]=fam[m.fam]||[]).push(m)});
@@ -586,7 +605,7 @@ async function openMap(mode){
   mapMode=mode||'fuel';
   const dl=mapMode==='dealer',box=$('#mapbox');
   box.hidden=false;box.scrollIntoView({behavior:'smooth',block:'nearest'});
-  $('#mtitle').textContent=dl?'🏬 Showroom / xưởng dịch vụ':'🗺️ Chọn cây xăng';
+  $('#mtitle').textContent=dl?'🏬 Showroom / xưởng dịch vụ':'🗺️ Chọn showroom';
   $('#mbrandbox').hidden=!dl;
   if(dl){const v=cur();if(!$('#mbrand').value)$('#mbrand').value=v&&v.brand||''}
   if(!MBT){$('#mkeybox').hidden=false;$('#mapwrap').hidden=true;mset('Cần Mapbox token công khai (bắt đầu bằng pk.) để dùng bản đồ. Xem README.');return}
@@ -819,6 +838,7 @@ $('#ef').onclick=e=>{
   else if(id==='mapopen')openMap(tab==='service'?'dealer':'fuel');
   else if(id==='plclear'){selPlace=null;renderPlace()}
 };
+$('#list').addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.m){if(d.open)openM.add(d.dataset.m);else openM.delete(d.dataset.m)}},true);
 $('#hf').onclick=e=>{const b=e.target.closest('[data-hf]');if(b){hist=b.dataset.hf;renderDash()}};
 $('#ef').onsubmit=e=>{
   e.preventDefault();
@@ -878,7 +898,7 @@ function merge(p){
   if(!cur()&&S.vehicles[0])S.cur=S.vehicles[0].id;
   save();renderAll();say('Đã khôi phục '+nv+' xe và '+ne+' khoản mới. Dữ liệu trùng được bỏ qua.');
 }
-$('#exp').onclick=()=>saveFile('so-xe-sao-luu-'+today()+'.json',JSON.stringify({app:'so-xe',version:1,exported:today(),vehicles:S.vehicles,entries:S.entries,parts:S.parts},null,1));
+$('#exp').onclick=()=>saveFile('veo-app-sao-luu-'+today()+'.json',JSON.stringify({app:'so-xe',version:1,exported:today(),vehicles:S.vehicles,entries:S.entries,parts:S.parts},null,1));
 $('#csv').onclick=()=>{
   const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
   const rows=[['Xe','Biển số','Ngày','Loại','Số km','Số lít','Giá/lít','Số tiền','Đầy bình','Cây xăng','Ghi chú']];
@@ -886,7 +906,7 @@ $('#csv').onclick=()=>{
     const v=S.vehicles.find(x=>x.id===e.v)||{};
     rows.push([v.name,v.plate,e.date,TYPES[e.type][0],e.odo||'',e.liters||'',e.price||'',e.amount,e.type==='fuel'?(e.full?'Có':'Không'):'',e.place?e.place.name:'',e.note]);
   });
-  saveFile('so-xe-'+today()+'.csv','\ufeff'+rows.map(r=>r.map(q).join(';')).join('\r\n'));
+  saveFile('veo-app-'+today()+'.csv','\ufeff'+rows.map(r=>r.map(q).join(';')).join('\r\n'));
 };
 $('#cp').onclick=async()=>{
   const txt=JSON.stringify({app:'so-xe',version:1,exported:today(),vehicles:S.vehicles,entries:S.entries,parts:S.parts});
@@ -897,7 +917,7 @@ $('#imp').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{
   const f=e.target.files[0];if(!f)return;
   const r=new FileReader();
-  r.onload=()=>{try{merge(JSON.parse(r.result))}catch(x){say('File không hợp lệ. Hãy chọn đúng file .json do Sổ Xe tạo ra.')}e.target.value=''};
+  r.onload=()=>{try{merge(JSON.parse(r.result))}catch(x){say('File không hợp lệ. Hãy chọn đúng file .json do Veo App tạo ra.')}e.target.value=''};
   r.readAsText(f);
 };
 $('#exp2').onclick=()=>{$('#bk').value=JSON.stringify({app:'so-xe',version:1,vehicles:S.vehicles,entries:S.entries,parts:S.parts});$('#bk').select()};
@@ -1023,6 +1043,7 @@ applyBG();
 if(S.vehicles.length&&!cur())S.cur=S.vehicles[0].id;
 renderAll();
 initSync();
+if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 </script>
 </body>
 </html>
