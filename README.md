@@ -1,33 +1,54 @@
-# Sổ Xe – tự đồng bộ lên Google Drive
+# Veo App - Lái mượt, Quản lý chuẩn (React + Vite + TypeScript)
 
-App chạy hoàn toàn trên trình duyệt. Dữ liệu lưu trong file ẩn `so-xe.json` ở thư mục riêng của app trên Google Drive (không đụng tới file khác của bạn).
+Ứng dụng sổ theo dõi và quản lý phương tiện, chi phí đi lại, đổ xăng, bảo dưỡng linh kiện, phân tích thu chi, và tự động đồng bộ lên Google Drive. Được viết lại hoàn chỉnh bằng React, TypeScript và Vite.
 
-## Bước 1. Đưa lên GitHub Pages
-1. Tạo repository mới trên GitHub (ví dụ `so-xe`), chọn Public.
-2. Upload file `index.html` vào repository.
-3. Vào Settings > Pages > Source: "Deploy from a branch" > branch `main`, thư mục `/ (root)` > Save.
-4. Sau vài phút có địa chỉ dạng `https://TENCUABAN.github.io/so-xe/`.
+## Tính năng chính
 
-## Bước 2. Tạo Client ID (miễn phí, làm một lần)
-1. Vào https://console.cloud.google.com, tạo project mới (ví dụ "So Xe").
-2. APIs & Services > Library > tìm "Google Drive API" > Enable.
-3. APIs & Services > OAuth consent screen (Google Auth Platform) > chọn External > điền tên app, email của bạn > Save.
-   - Mục Audience / Test users: thêm email Google của bạn.
-   - Mục Data Access / Scopes: thêm `.../auth/drive.appdata`.
-4. APIs & Services > Credentials > Create credentials > OAuth client ID > Application type: **Web application**.
-   - Authorized JavaScript origins: `https://TENCUABAN.github.io` (chỉ domain, không có đường dẫn, không dấu `/` ở cuối).
-5. Copy **Client ID** (đuôi `.apps.googleusercontent.com`).
+- 🚗 **Quản lý đa phương tiện**: Thêm, sửa, xóa nhiều xe (xe máy, ô tô). Ghi nhận biển số, odo hiện tại, dung tích bình xăng, mức tiêu hao công bố và hãng xe.
+- ⛽ **Theo dõi đổ xăng & ước tính bình xăng**:
+  - Tự động tính số lít hoặc số tiền từ đơn giá/lít.
+  - Phân loại nhiên liệu: E10 RON95, E5 RON92, RON95 khoáng hoặc loại khác.
+  - Đồng hồ ước tính mức xăng còn lại trong bình hiện tại và sau khi đổ.
+  - Dự đoán thời điểm và số km cần đổ xăng tiếp theo, phân tích xu hướng tiết kiệm/hao xăng.
+- 🔧 **Bảo dưỡng & Quản lý linh kiện**:
+  - Theo dõi tuổi thọ các linh kiện chính: Nhớt máy, bugi, lọc gió, má phanh, lốp xe, ắc quy, nước làm mát...
+  - Cảnh báo trực quan khi linh kiện sắp đến hạn thay (dưới 20% hoặc quá hạn).
+  - Tự động ghi nhận mốc thay và cập nhật % linh kiện khi ghi khoản bảo dưỡng.
+- 📊 **Biểu đồ & Báo cáo thu chi**:
+  - Chuyển đổi linh hoạt giữa biểu đồ Cột (Bar), Đường (Line) và Biểu đồ tròn (Pie/Donut).
+  - Xem theo 6 tháng gần nhất, theo từng tháng hoặc theo năm.
+  - Phân loại chi tiết cơ cấu chi phí (Đổ xăng, Bảo dưỡng, Chi phí khác) và so sánh Thu - Chi - Lãi/Lỗ.
+- 🏅 **Hệ thống huy chương (Gamification)**:
+  - 3 nhóm huy chương: Nhiên liệu, Bảo dưỡng và Chung.
+  - Hiệu ứng pháo hoa và lấp lánh khi mở khóa huy chương mới.
+- 🗺️ **Bản đồ Mapbox**:
+  - Tìm nhanh các cây xăng xung quanh vị trí của bạn.
+  - Tìm showroom / xưởng dịch vụ chính hãng theo từng dòng xe (Honda, Yamaha, Toyota, VinFast...).
+  - Định vị GPS thời gian thực với biểu tượng ghim xanh trực quan.
+- 🎨 **Tùy biến giao diện**:
+  - Các theme nền cài sẵn (Hoàng hôn, Xe máy, Xe hơi, Đêm phố, v.v.).
+  - Cho phép tải lên ảnh nền riêng từ thiết bị với thanh điều chỉnh độ mờ lớp phủ.
+  - Hỗ trợ chế độ Sáng / Tối (Dark mode).
+- 🔊 **Âm thanh và hiệu ứng thắng xe**:
+  - Âm thanh rít bánh xe chân thực mô phỏng bằng Web Audio API khi chuyển tab.
+  - Hiệu ứng vệt bánh xe và khói lốp xe sống động.
+- ☁️ **Sao lưu & Đồng bộ Google Drive**:
+  - Tự động đồng bộ hai chiều lên thư mục `appDataFolder` trên Google Drive qua Google Identity Services.
+  - Xuất / nhập dữ liệu sao lưu `.json`.
+  - Xuất bảng kê chi tiết ra file Excel `.csv`.
 
-## Bước 3. Điền Client ID
-Không cần sửa code nữa: mở app, ô "Dán Google Client ID" hiện ra ở mục Quản lý dữ liệu, dán Client ID rồi bấm Lưu. Client ID được nhớ trên từng thiết bị (làm một lần cho mỗi máy). Nếu muốn khỏi dán ở mọi máy, có thể điền thẳng vào dòng `const DEF_CID=` trong `index.html` rồi commit lại.
+## Cài đặt và phát triển
 
-## Dùng
-Mở địa chỉ GitHub Pages > bấm "Kết nối Google Drive" > chọn tài khoản > cho phép. Từ đó mỗi lần thêm hoặc xóa khoản, app tự lưu lên Drive; mở trên máy khác và kết nối cùng tài khoản là dữ liệu tự về.
+```bash
+# Cài đặt thư viện
+npm install
 
-Ghi chú: app ở chế độ Testing nên Google hiện cảnh báo "app chưa được xác minh" (bấm Nâng cao > Tiếp tục), và đăng nhập có thể phải xác nhận lại sau khoảng 7 ngày. Dữ liệu trên Drive không mất.
+# Khởi chạy dev server (port 3000)
+npm run dev
 
-## Bản đồ chọn cây xăng (Google Maps)
-1. Trong Google Cloud Console (cùng project hoặc project mới), bật **Maps JavaScript API** và **Places API (New)**.
-2. Credentials > Create credentials > **API key**. Mục Application restrictions chọn *Websites*, thêm `https://nam9393.github.io/*`. Mục API restrictions chọn hai API ở trên.
-3. Google yêu cầu gắn tài khoản thanh toán cho Maps, nhưng có hạn mức miễn phí hằng tháng; bạn nên đặt ngân sách cảnh báo (Billing > Budgets) để yên tâm.
-4. Trong app, tab Đổ xăng > "Chọn cây xăng trên bản đồ" > dán key > Lưu. Key được nhớ trên từng thiết bị; nếu muốn dùng chung, điền vào dòng `const DEF_MAPKEY=''` trong `index.html` rồi commit lại. Key web luôn nhìn thấy được trong mã trang, nên phải đặt giới hạn referrer như bước 2.
+# Kiểm tra mã nguồn
+npm run lint
+
+# Build production
+npm run build
+```
