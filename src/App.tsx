@@ -414,7 +414,7 @@ export function App() {
             className={`hud-nav-item ${activeNav === 'dashboard' ? 'active' : ''}`}
             onClick={() => handleNavSwitch('dashboard')}
           >
-            🚀 Buồng Lái
+            🚀 Tổng Quan
           </button>
           <button
             type="button"

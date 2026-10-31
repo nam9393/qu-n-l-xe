@@ -104,7 +104,6 @@ export const PRESET_BACKGROUNDS = [
   },
 ];
 
-export const DEF_MBTOKEN =
-  'pk.eyJ1IjoibmFtbmFtOTM5MyIsImEiOiJjbXZ0NHJxbDYwMG9pMnhvbWJhbnc3eGY1In0.j5JGeIQO7ei6zLk6f3t9fQ';
+export const GOOGLE_MAPS_ATTRIBUTION = 'gmp_mcp_codeassist_v1_aistudio';
 export const DEF_CID =
   '1032619748060-172d176jjc9bkat78g547rt2vcen3t2c.apps.googleusercontent.com';

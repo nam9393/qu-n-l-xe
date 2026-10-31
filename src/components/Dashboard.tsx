@@ -151,7 +151,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Space Telemetry Meters */}
         <div className="stats">
           <div className="kpi">
-            <small>🛣️ Cự ly đã bay</small>
+            <small>🛣️ Quãng đường</small>
             <b>{s.km ? `${s.km.toLocaleString('vi-VN')} km` : '–'}</b>
           </div>
           <div className="kpi">
@@ -371,7 +371,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           justifyContent: 'space-between',
         }}
       >
-        <span style={{ fontSize: '13px', color: 'var(--mut)' }}>Thao tác buồng lái:</span>
+        <span style={{ fontSize: '13px', color: 'var(--mut)' }}>Thao tác nhanh:</span>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button
             type="button"

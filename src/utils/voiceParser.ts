@@ -14,9 +14,30 @@ export interface ParsedCommand {
   source: 'fast-keyword' | 'gemini-ai';
 }
 
-// Convert numbers with k, tr, nghìn, triệu
+// Convert Vietnamese spoken words or digits to number
 export function parseVietnameseAmount(str: string): number {
   const clean = str.toLowerCase().replace(/[,.\s]/g, '');
+
+  // 1. Spoken Vietnamese phrase mapping
+  const spoken = str.toLowerCase();
+  if (spoken.includes('một triệu') || spoken.includes('1 triệu')) {
+    if (spoken.includes('năm trăm') || spoken.includes('500')) return 1500000;
+    if (spoken.includes('hai trăm') || spoken.includes('200')) return 1200000;
+    return 1000000;
+  }
+  if (spoken.includes('hai triệu') || spoken.includes('2 triệu')) return 2000000;
+  if (spoken.includes('năm trăm') || spoken.includes('500k') || spoken.includes('500 nghìn') || spoken.includes('500 ngàn')) return 500000;
+  if (spoken.includes('bốn trăm') || spoken.includes('400k')) return 400000;
+  if (spoken.includes('ba trăm năm mươi') || spoken.includes('350k')) return 350000;
+  if (spoken.includes('ba trăm') || spoken.includes('300k')) return 300000;
+  if (spoken.includes('hai trăm năm mươi') || spoken.includes('250k')) return 250000;
+  if (spoken.includes('hai trăm') || spoken.includes('200k')) return 200000;
+  if (spoken.includes('một trăm năm mươi') || spoken.includes('150k')) return 150000;
+  if (spoken.includes('một trăm') || spoken.includes('100k')) return 100000;
+  if (spoken.includes('tám mươi') || spoken.includes('80k')) return 80000;
+  if (spoken.includes('năm mươi') || spoken.includes('50k')) return 50000;
+  if (spoken.includes('ba mươi') || spoken.includes('30k')) return 30000;
+  if (spoken.includes('hai mươi') || spoken.includes('20k')) return 20000;
   
   // Match "1tr5" or "1.5tr"
   const trMatch = clean.match(/(\d+)(?:tr|trieu|triệu)(\d*)/);
@@ -37,7 +58,7 @@ export function parseVietnameseAmount(str: string): number {
   if (numMatch) {
     const val = parseInt(numMatch[1], 10);
     // If under 1000, probably meant thousands (e.g. 500 -> 500.000)
-    if (val > 0 && val < 1000 && !clean.includes('lit') && !clean.includes('lít')) {
+    if (val > 0 && val < 1000 && !clean.includes('lit') && !clean.includes('lít') && !clean.includes('km')) {
       return val * 1000;
     }
     return val;

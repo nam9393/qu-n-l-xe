@@ -32,61 +32,35 @@ export const AstroCopilot: React.FC<AstroCopilotProps> = ({
   const [isChatLoading, setIsChatLoading] = useState(false);
 
   const recognitionRef = useRef<any>(null);
+  const silenceTimerRef = useRef<any>(null);
+  const latestTranscriptRef = useRef<string>('');
 
-  useEffect(() => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = 'vi-VN';
+  // Local Copilot Knowledge Fallback for Client
+  const getClientFallbackAdvice = (msg: string): string => {
+    const lower = msg.toLowerCase();
+    const vName = currentVehicle?.name || 'phương tiện';
+    const odo = currentOdo || 0;
 
-      recognition.onstart = () => {
-        setIsListening(true);
-        setStatusMessage('Đang lắng nghe chỉ thị...');
-        playChimeSound(soundEnabled);
-      };
-
-      recognition.onresult = (event: any) => {
-        const text = Array.from(event.results)
-          .map((r: any) => r[0].transcript)
-          .join('');
-        setTranscript(text);
-        setCommandInput(text);
-      };
-
-      recognition.onerror = (event: any) => {
-        setIsListening(false);
-        setStatusMessage('Không thu được âm thanh. Nhấn mic để thử lại.');
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognitionRef.current = recognition;
+    if (lower.includes('nhớt') || lower.includes('dầu')) {
+      return `🛢️ [Tư vấn nhớt ${vName}]:
+- Xe máy: Thay sau mỗi 1.500 - 2.000 km (nhớt khoáng) hoặc 3.000 - 4.000 km (nhớt 100% tổng hợp).
+- Ô tô: Thay sau mỗi 5.000 - 10.000 km. Luôn thay lọc nhớt sau mỗi 2 lần thay nhớt máy.
+- Mốc km hiện tại của bạn: ${odo.toLocaleString('vi-VN')} km.`;
     }
-  }, [soundEnabled]);
-
-  const handleToggleMic = () => {
-    if (!recognitionRef.current) {
-      setStatusMessage('Trình duyệt chưa hỗ trợ Web Speech API. Bạn có thể gõ trực tiếp câu lệnh.');
-      return;
+    if (lower.includes('xăng') || lower.includes('tiết kiệm') || lower.includes('tiêu hao')) {
+      return `⛽ [Mức tiêu hao & Tiết kiệm nhiên liệu]:
+- Duy trì tay ga/chân ga đều đặn, tránh tăng tốc đột ngột.
+- Kiểm tra áp suất lốp đủ chuẩn (lốp non làm tốn thêm 5-10% xăng).
+- Vệ sinh lọc gió định kỳ mỗi 5.000 km.`;
     }
-
-    if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    } else {
-      setTranscript('');
-      setStatusMessage('Đang kích hoạt radar giọng nói...');
-      try {
-        recognitionRef.current.start();
-      } catch {
-        recognitionRef.current.stop();
-      }
+    if (lower.includes('lốp') || lower.includes('áp suất')) {
+      return `🛞 [Tư vấn áp suất lốp]:
+- Xe máy: Bánh trước ~2.0 kg/cm² (29 PSI), bánh sau ~2.3 kg/cm² (33 PSI).
+- Ô tô: Thường 2.2 - 2.5 bar (32 - 36 PSI). Nên đảo lốp mỗi 10.000 km.`;
     }
+    return `🛸 [Astro Copilot - Trợ lý xe ${vName}]:
+Tôi đã ghi nhận câu hỏi của bạn. Xe đang ở mốc Odo: ${odo.toLocaleString('vi-VN')} km.
+Bạn có thể hỏi tôi về định kỳ thay nhớt, kiểm tra lọc gió/bugi, kinh nghiệm chạy tiết kiệm xăng hoặc ra lệnh giọng nói: "lệnh: đổ xăng, giá tiền: 500k".`;
   };
 
   const processTextCommand = async (rawText: string) => {
@@ -94,17 +68,18 @@ export const AstroCopilot: React.FC<AstroCopilotProps> = ({
     if (!text) return;
 
     setIsProcessing(true);
-    setStatusMessage('Astro Copilot đang giải mã dữ liệu...');
+    setStatusMessage('⚡ Astro Copilot đang giải mã dữ liệu câu lệnh...');
 
     // 1. Fast offline keyword check first
     const fastParsed = parseVoiceKeywordCommand(text, currentOdo);
     if (fastParsed && fastParsed.amount > 0) {
       playConfirmSound(soundEnabled);
       setIsProcessing(false);
-      setStatusMessage(`✨ ${fastParsed.explanation}`);
+      setStatusMessage(`✨ Đã tự động điền: ${fastParsed.explanation}`);
       onApplyCommand(fastParsed);
       setCommandInput('');
       setTranscript('');
+      latestTranscriptRef.current = '';
       return;
     }
 
@@ -117,19 +92,126 @@ export const AstroCopilot: React.FC<AstroCopilotProps> = ({
       );
       if (geminiParsed && (geminiParsed.amount > 0 || geminiParsed.note)) {
         playConfirmSound(soundEnabled);
-        setStatusMessage(`🤖 Gemini: ${geminiParsed.explanation || 'Đã áp dụng thông số vào buồng lái!'}`);
+        setStatusMessage(`🤖 Đã tự động nạp: ${geminiParsed.explanation || 'Đã áp dụng vào form!'}`);
         onApplyCommand(geminiParsed);
         setCommandInput('');
         setTranscript('');
+        latestTranscriptRef.current = '';
       } else {
         setStatusMessage(
-          'Chưa rõ thông số chi phí. Hãy thử mẫu: "lệnh: đổ xăng, giá tiền: 500k" hoặc "thay nhớt 250k".'
+          'Chưa rõ số tiền. Hãy nói rõ: "lệnh: đổ xăng, giá tiền: 500k" hoặc "thay nhớt 250k".'
         );
       }
     } catch {
-      setStatusMessage('Kết nối Gemini AI gián đoạn. Đã chuyển sang chế độ thủ công.');
+      if (fastParsed) {
+        playConfirmSound(soundEnabled);
+        setStatusMessage(`✨ Tự động nhận diện: ${fastParsed.explanation}`);
+        onApplyCommand(fastParsed);
+      } else {
+        setStatusMessage('Đã nhận lệnh thoại, bạn có thể kiểm tra và lưu vào sổ chi tiêu.');
+      }
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  useEffect(() => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      // Continuous = true so it does NOT cut off abruptly while user is speaking
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'vi-VN';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setStatusMessage('🎙️ Đang lắng nghe... Nói tự nhiên, hệ thống sẽ tự động điền khi bạn dứt câu!');
+        playChimeSound(soundEnabled);
+      };
+
+      recognition.onresult = (event: any) => {
+        let interimText = '';
+        let finalText = '';
+
+        for (let i = 0; i < event.results.length; i++) {
+          const res = event.results[i];
+          if (res.isFinal) {
+            finalText += res[0].transcript + ' ';
+          } else {
+            interimText += res[0].transcript;
+          }
+        }
+
+        const combinedText = (finalText + interimText).trim();
+        setTranscript(combinedText);
+        setCommandInput(combinedText);
+        latestTranscriptRef.current = combinedText;
+
+        // Reset silence debounce timer: wait 1.8 seconds after user stops speaking to auto-submit
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (latestTranscriptRef.current.trim()) {
+            setStatusMessage('⚡ Đã nhận diện xong câu nói, đang tự động điền...');
+            if (recognitionRef.current) {
+              try {
+                recognitionRef.current.stop();
+              } catch {}
+            }
+            setIsListening(false);
+            processTextCommand(latestTranscriptRef.current);
+          }
+        }, 1800);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition warning:', event?.error);
+        if (event?.error !== 'no-speech') {
+          setIsListening(false);
+          setStatusMessage('Không thu được âm thanh rõ. Bạn có thể nhấn mic để nói lại.');
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+
+    return () => {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    };
+  }, [soundEnabled, currentOdo, currentVehicle?.name]);
+
+  const handleToggleMic = () => {
+    if (!recognitionRef.current) {
+      setStatusMessage('Trình duyệt chưa hỗ trợ Web Speech API. Bạn có thể gõ trực tiếp câu lệnh.');
+      return;
+    }
+
+    if (isListening) {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      recognitionRef.current.stop();
+      setIsListening(false);
+      if (latestTranscriptRef.current.trim()) {
+        processTextCommand(latestTranscriptRef.current);
+      }
+    } else {
+      setTranscript('');
+      latestTranscriptRef.current = '';
+      setStatusMessage('Đang kích hoạt micro... Hãy đọc đủ thông tin (ví dụ: "lệnh: đổ xăng, giá tiền: 500k")');
+      try {
+        recognitionRef.current.start();
+      } catch {
+        recognitionRef.current.stop();
+        setTimeout(() => {
+          try {
+            recognitionRef.current.start();
+          } catch {}
+        }, 200);
+      }
     }
   };
 
@@ -159,19 +241,15 @@ export const AstroCopilot: React.FC<AstroCopilotProps> = ({
       });
 
       const data = await res.json();
-      if (data.reply) {
+      if (data && data.reply) {
         setAiMessages((prev) => [...prev, { sender: 'copilot', text: data.reply }]);
       } else {
-        setAiMessages((prev) => [
-          ...prev,
-          { sender: 'copilot', text: 'Chưa có dữ liệu từ trạm radar Gemini.' },
-        ]);
+        const fallback = getClientFallbackAdvice(userText);
+        setAiMessages((prev) => [...prev, { sender: 'copilot', text: fallback }]);
       }
     } catch {
-      setAiMessages((prev) => [
-        ...prev,
-        { sender: 'copilot', text: 'Mất tín hiệu vệ tinh tới Gemini AI.' },
-      ]);
+      const fallback = getClientFallbackAdvice(userText);
+      setAiMessages((prev) => [...prev, { sender: 'copilot', text: fallback }]);
     } finally {
       setIsChatLoading(false);
     }
@@ -197,7 +275,7 @@ export const AstroCopilot: React.FC<AstroCopilotProps> = ({
               Astro Copilot · AI & Radar Giọng Nói
             </h2>
             <small style={{ color: 'var(--mut)', fontSize: '11px' }}>
-              Gemini 3.8 Flash · Tự động điền theo lệnh thoại & từ khóa
+              Tự động lắng nghe & Tự động điền form khi dứt câu (không cần bấm nạp)
             </small>
           </div>
         </div>
@@ -216,12 +294,12 @@ export const AstroCopilot: React.FC<AstroCopilotProps> = ({
         </button>
       </div>
 
-      {/* Voice Control Bar */}
+      {/* Voice Control Bar (Automatic fill on sentence end, no manual Nap button needed) */}
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
         <button
           type="button"
           onClick={handleToggleMic}
-          title={isListening ? 'Dừng thu âm' : 'Bật micro ra lệnh giọng nói'}
+          title={isListening ? 'Bấm để dừng và điền ngay' : 'Bật micro ra lệnh giọng nói'}
           style={{
             width: '46px',
             height: '46px',
@@ -233,11 +311,12 @@ export const AstroCopilot: React.FC<AstroCopilotProps> = ({
               : 'radial-gradient(circle, #00f0ff 20%, #0066ff 100%)',
             borderColor: isListening ? '#ff3366' : '#00f0ff',
             boxShadow: isListening
-              ? '0 0 20px #ff0055'
+              ? '0 0 22px #ff0055'
               : '0 0 16px rgba(0, 240, 255, 0.6)',
             color: '#fff',
             fontSize: '20px',
             cursor: 'pointer',
+            transition: 'all 0.2s ease',
           }}
         >
           {isListening ? '⏹️' : '🎙️'}
@@ -246,9 +325,12 @@ export const AstroCopilot: React.FC<AstroCopilotProps> = ({
         <div style={{ flex: 1, position: 'relative' }}>
           <input
             type="text"
-            placeholder='Ra lệnh: "lệnh: đổ xăng, giá tiền: 500k" hoặc "thay nhớt 250k"'
+            placeholder='Đọc hoặc gõ: "lệnh: đổ xăng, giá tiền: 500k" hoặc "thay nhớt 250k"'
             value={commandInput}
-            onChange={(e) => setCommandInput(e.target.value)}
+            onChange={(e) => {
+              setCommandInput(e.target.value);
+              latestTranscriptRef.current = e.target.value;
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -257,27 +339,24 @@ export const AstroCopilot: React.FC<AstroCopilotProps> = ({
             }}
             style={{
               width: '100%',
-              paddingRight: '65px',
               borderColor: isListening ? '#00f0ff' : undefined,
+              paddingRight: isProcessing ? '40px' : '10px',
             }}
           />
-          <button
-            type="button"
-            className="pri"
-            disabled={!commandInput.trim() || isProcessing}
-            onClick={() => processTextCommand(commandInput)}
-            style={{
-              position: 'absolute',
-              right: '4px',
-              top: '4px',
-              bottom: '4px',
-              padding: '0 12px',
-              borderRadius: '8px',
-              fontSize: '12px',
-            }}
-          >
-            {isProcessing ? '⏳' : 'Nạp'}
-          </button>
+          {isProcessing && (
+            <div
+              style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '14px',
+                color: '#00f0ff',
+              }}
+            >
+              ⚡
+            </div>
+          )}
         </div>
       </div>
 

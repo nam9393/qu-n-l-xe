@@ -562,8 +562,8 @@ export const EntryForm: React.FC<EntryFormProps> = ({
                 onClick={() => handleOpenMap(tab === 'service' ? 'dealer' : 'fuel')}
               >
                 {tab === 'service'
-                  ? '🏬 Tìm showroom / xưởng dịch vụ trên bản đồ'
-                  : '🗺️ Chọn cây xăng trên bản đồ'}
+                  ? '🏬 Tìm showroom / xưởng trên Google Maps'
+                  : '🗺️ Chọn cây xăng trên Google Maps'}
               </button>
             )}
           </div>
