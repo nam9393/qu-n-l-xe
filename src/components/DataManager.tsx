@@ -274,6 +274,40 @@ export const DataManager: React.FC<DataManagerProps> = ({
           </button>
         </div>
       </details>
+
+      <div
+        style={{
+          marginTop: '16px',
+          padding: '12px',
+          borderRadius: '10px',
+          background: 'rgba(0, 240, 255, 0.08)',
+          border: '1px solid rgba(0, 240, 255, 0.25)',
+        }}
+      >
+        <h3 style={{ margin: '0 0 6px', fontSize: '13.5px', color: '#00f0ff' }}>
+          🌐 Địa chỉ Web & Cài đặt App (PWA)
+        </h3>
+        <p style={{ margin: '0 0 8px', fontSize: '12.5px', color: '#cce6ff', lineHeight: 1.5 }}>
+          • <b>Link Web trực tiếp (có đầy đủ AI Gemini):</b> Mở trên trình duyệt điện thoại hoặc máy tính qua đường dẫn đã triển khai trên AI Studio:
+        </p>
+        <div
+          style={{
+            padding: '6px 10px',
+            background: 'rgba(5, 12, 28, 0.8)',
+            borderRadius: '6px',
+            fontSize: '12px',
+            fontFamily: 'monospace',
+            color: '#00f0ff',
+            wordBreak: 'break-all',
+            marginBottom: '8px',
+          }}
+        >
+          https://ais-pre-jlczx3v33qd2cngtlwrz75-22176439405.asia-northeast1.run.app
+        </div>
+        <p style={{ margin: 0, fontSize: '12px', color: 'var(--mut)' }}>
+          • <b>Vì sao link GitHub cũ không hiện gì?</b> GitHub Pages cần các file tĩnh đã build trong thư mục <code>dist/</code> thay vì mã nguồn TypeScript chưa build. Khi bạn đẩy thư mục <code>dist/</code> lên GitHub Pages, ứng dụng sẽ chạy ngay lập tức nhờ cấu hình <code>base: './'</code>!
+        </p>
+      </div>
     </details>
   );
 };

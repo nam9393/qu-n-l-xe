@@ -1,0 +1,32 @@
+{
+  "id": "./",
+  "name": "Veo App - Lái mượt, Quản lý chuẩn",
+  "short_name": "Veo App",
+  "description": "Ứng dụng buồng lái theo dõi xe thông minh tích hợp AI Copilot Gemini và trợ lý giọng nói điều khiển đa tác vụ.",
+  "theme_color": "#00f0ff",
+  "background_color": "#070c1a",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "./",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

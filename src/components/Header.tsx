@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Vehicle } from '../types';
 import { triggerSkidEffect } from '../utils/sound';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   vehicles: Vehicle[];
@@ -81,6 +82,8 @@ export const Header: React.FC<HeaderProps> = ({
         >
           {soundEnabled ? '🔊' : '🔇'}
         </button>
+
+        <PWAInstallButton />
       </div>
     </div>
   );
